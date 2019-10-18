@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
-import 'dbHelper.dart';
+
 import 'package:scoped_model/scoped_model.dart';
 import 'scoped-model/Alarms.dart';
 
@@ -65,7 +65,6 @@ class _AlarmViewState extends State<AlarmView>
 
   @override
   Widget build(BuildContext context) {
-    print("in build [AlarmView.dart]");
     return ScopedModelDescendant<AlarmModel>(
       builder: (BuildContext context, Widget child, AlarmModel model) {
         model.refreshData();

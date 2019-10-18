@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'scoped-model/Alarms.dart';
 import 'package:scoped_model/scoped_model.dart';
 import "Alarm.dart";
-import 'dbHelper.dart';
 import 'TileItem.dart';
 
 class ListViewClass extends StatefulWidget {
@@ -14,8 +13,7 @@ class ListViewClass extends StatefulWidget {
 }
 
 class _ListViewClassState extends State<ListViewClass> {
-  int listInt = 0;
-  DbHelper dbHelper = new DbHelper();
+ 
 
   @override
   initState() {
@@ -29,7 +27,6 @@ class _ListViewClassState extends State<ListViewClass> {
 
   @override
   Widget build(BuildContext context) {
-    print("in build [ListView.dart]");
     return ScopedModelDescendant<AlarmModel>(
       builder: (BuildContext context, Widget widget, AlarmModel model) {
         model.refreshData();
@@ -58,7 +55,6 @@ class _ListViewClassState extends State<ListViewClass> {
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                     ),
                   ));
-                  //TODO add the dismiss func. here
                   dismissAlarm(model.deleteProduct, alarmList[index].id , index);
                 }
               },
@@ -82,7 +78,7 @@ class _ListViewClassState extends State<ListViewClass> {
                             fullscreenDialog: true,
                             builder: (BuildContext context) {
                               return TileItem(
-                                  alarmList: alarmList, index: index);
+                                  alarm: alarmList[index],index: index,);
                             },
                           ),
                         );
@@ -104,7 +100,7 @@ class _ListViewClassState extends State<ListViewClass> {
                                 placeholder:
                                     AssetImage("assets/Images/loading.gif"),
                                 image: NetworkImage(
-                                    "https://picsum.photos/485/384?image=${index + 100}"),
+                                    "https://picsum.photos/485/384?image=${alarmList[index].id + 100}"),
                                 fit: BoxFit.cover,
                               ),
                             ),

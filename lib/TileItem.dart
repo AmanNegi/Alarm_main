@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'scoped-model/Alarms.dart';
 import 'Imported/EnsureVisibleWhenFocused.dart';
+import 'package:scoped_model/scoped_model.dart';
 import 'Alarm.dart';
 
 class TileItem extends StatefulWidget {
-  final List<Alarm> alarmList;
+  final Alarm alarm;
   final int index;
-  TileItem({this.alarmList, this.index});
+
+  TileItem({this.alarm, this.index});
 
   @override
   _TileItemState createState() => _TileItemState();
@@ -15,44 +18,57 @@ class TileItem extends StatefulWidget {
 
 class _TileItemState extends State<TileItem> {
   var myFocusNode = new FocusNode();
-
   static const platform = const MethodChannel('samples.flutter.dev/alarm');
-
-  List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final _formKey = GlobalKey<FormState>();
+  String messageText;
+  List<int> intList = [0, 0, 0, 0, 0, 0, 0];
+  List<String> days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   List<bool> isSelected = [false, false, false, false, false, false, false];
-  int _hour;
-  int _minute;
+  List<String> daysFull = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+  ];
+  List<Map<String, bool>> daysWithBool = [];
 
-  void getHourMinuteForDismissing() {
-    int hour = widget.alarmList[widget.index].hour;
-    if (hour >= 12) {
-      hour = hour - 12;
-    }
-    setState(() {
-      _hour = hour;
-      _minute = widget.alarmList[widget.index].minute;
-    });
-  }
-
-  void _dismissAlarm() async {
-    platform.invokeMethod('dismissAlarm', {'hour': _hour, 'minute': _minute});
+  void updateAlarm(Alarm alarm, Function update) async {
+    print("index in alarm Update : ${widget.index}");
+    update(alarm, widget.index, daysWithBool);
   }
 
   @override
   void initState() {
+    print(" init state() " + widget.alarm.listInt.toString());
+    setIntList();
     super.initState();
-    getHourMinuteForDismissing();
     myFocusNode = FocusNode();
   }
 
-  List<int> getList() {
-    List<int> newList = [];
-    for (int i = 0; i < isSelected.length; i++) {
-      if (isSelected[i] == true) {
-        newList.add(i + 1);
-      }
+  void setIntList() {
+    setState(() {
+      this.messageText = widget.alarm.message;
+      this.intList = widget.alarm.listInt;
+    });
+  }
+
+  List<int> getIntListFromMapList() {
+    List<int> getIntList = [];
+    for (int a = 0; a < isSelected.length; a++) {
+      getIntList.add(isSelected[a] ? 1 : 0);
     }
-    return newList;
+    return getIntList;
+  }
+
+  List<bool> fromIntListToBoolList(List<int> intList) {
+    List<bool> boolList = [];
+    for (int i = 0; i < intList.length; i++) {
+      boolList.add(intList[i] == 1 ? true : false);
+    }
+    return boolList;
   }
 
   @override
@@ -63,91 +79,124 @@ class _TileItemState extends State<TileItem> {
   }
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar(
-              expandedHeight: 256.0,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Hero(
-                  child: FadeInImage(
-                    placeholder: AssetImage("assets/Images/coffee.jpg"),
-                    image: NetworkImage(
-                        "https://picsum.photos/485/384?image=${widget.index + 100}"),fit: BoxFit.cover,
+    return ScopedModelDescendant<AlarmModel>(
+      builder: (cntxt, wgt, model) {
+        return Scaffold(
+          body: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).requestFocus(FocusNode());
+            },
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverAppBar(
+                  expandedHeight: 256.0,
+                  pinned: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Hero(
+                      child: FadeInImage(
+                        placeholder: AssetImage("assets/Images/coffee.jpg"),
+                        image: NetworkImage(
+                            "https://picsum.photos/485/384?image=${widget.alarm.id + 100}"),
+                        fit: BoxFit.cover,
+                      ),
+                      tag: widget.alarm.id,
+                    ),
+                    title: Text(widget.alarm.message),
                   ),
-                  tag: widget.index,
                 ),
-                title: Text(widget.alarmList[widget.index].message),
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  // Image.network("https://picsum.photos/485/384?image=$num"),
-                  //Image.asset("assets/Images/coffee.jpg"),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: EnsureVisibleWhenFocused(
-                      focusNode: myFocusNode,
-                      child: Material(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Enter message',
-                            icon: Icon(Icons.message),
-                            border: OutlineInputBorder(
-                                gapPadding: 10.0,
-                                borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide()),
-                          ),
+                SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: EnsureVisibleWhenFocused(
                           focusNode: myFocusNode,
+                          child: Material(
+                            child: Form(
+                              key: _formKey,
+                              child: TextFormField(
+                                validator: (value) {
+                                  if (value.length > 5) {
+                                    return 'Enter a small message for the alarm...';
+                                  }
+                                  return null;
+                                },
+                                autocorrect: false,
+                                onSaved: ((value) {
+                                  setState(() {
+                                    this.messageText = value;
+                                  });
+                                }),
+                                initialValue: messageText,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.message),
+                                  border: OutlineInputBorder(
+                                      gapPadding: 10.0,
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      borderSide: BorderSide()),
+                                ),
+                                focusNode: myFocusNode,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ), //filterChip
+
+                      Container(
+                        height: 70.0,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: 7,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: ChoiceChip(
+                                selectedColor: Theme.of(context).accentColor,
+                                padding: EdgeInsets.all(10.0),
+                                elevation: 10.0,
+                                onSelected: (bool val) {
+                                  setState(() {
+                                    intList[index] = val == true ? 1 : 0;
+                                    isSelected[index] = val;
+                                    daysWithBool.add({daysFull[index]: val});
+                                    print(" Selected terms  $isSelected");
+                                  });
+                                  print(isSelected.toString());
+                                },
+                                selected: fromIntListToBoolList(intList)[index],
+                                label: Text(days[index]),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    ),
-                  ), //filterChip
+                      RaisedButton(
+                        child: Text("Update alarm"),
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            _formKey.currentState.save();
 
-                  Container(
-                    height: 70.0,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 7,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Padding(
-                          padding: EdgeInsets.all(5.0),
-                          child: FilterChip(
-                            selectedColor: Theme.of(context).accentColor,
-                            padding: EdgeInsets.all(10.0),
-                            elevation: 10.0,
-                            onSelected: (bool val) {
-                              setState(() {
-                                isSelected[index] = val;
-                                print(getList().toString());
-                              });
-                              print(isSelected.toString());
-                            },
-                            selected: isSelected[index],
-                            label: Text(days[index]),
-                          ),
-                        );
-                      },
-                    ),
+                            Alarm alarm = Alarm.withInt(
+                                message: messageText,
+                                id: widget.alarm.id,
+                                hour: widget.alarm.hour,
+                                minute: widget.alarm.minute,
+                                timeString: widget.alarm.timeString,
+                                listInt: intList);
+                            updateAlarm(alarm, model.updateProduct);
+                            print("The text required here " +
+                                alarm.listInt.toString());
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  RaisedButton(
-                    child: Text("Dismiss alarm"),
-                    onPressed: () async {
-                      _dismissAlarm();
-                    },
-                  )
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

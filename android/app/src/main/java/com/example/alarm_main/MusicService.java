@@ -6,7 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.widget.Toast;
 
@@ -15,6 +18,7 @@ import java.util.TimerTask;
 
 public class MusicService extends Service {
     MediaPlayer player;
+    Vibrator vibrator;
 
 
     @Override
@@ -27,6 +31,13 @@ public class MusicService extends Service {
         System.out.println("Started the music Service");
         player = MediaPlayer.create(this, Settings.System.DEFAULT_ALARM_ALERT_URI);
         player.setLooping(true);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(1000010000, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            //deprecated in API 26
+            vibrator.vibrate(10000);
+        }
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int maxVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         increaseVolumeWithTime(maxVol);
@@ -65,7 +76,7 @@ public class MusicService extends Service {
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "Destroyed the service", Toast.LENGTH_SHORT).show();
+       vibrator.cancel();
         player.stop();
         player.reset();
         player.release();

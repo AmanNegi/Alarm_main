@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 import 'Alarm.dart';
+import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 
 class DbHelper {
@@ -15,6 +16,7 @@ class DbHelper {
   String colMinute = "minute";
   String colMessage = "message";
   String colTimeString = "timeString";
+  String colIntList = "listInt";
 
   Future<Database> get getDatabase async {
     //check if database is not null
@@ -36,7 +38,7 @@ class DbHelper {
   void createDb(Database db, int newVersion) async {
     print('creating db');
     await db.execute(
-        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL)');
+        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colIntList BLOB)');
   }
 
   // ! adding alarm here...
@@ -64,8 +66,11 @@ class DbHelper {
 
   // ! updating alarm here...
   Future<int> updateAlarm(Alarm alarm) async {
+    print("in update Alarm  ${alarm.listInt.toString()}");
     return await database.update(tableName, alarm.toMap(),
-        where: '$colId = ?', whereArgs: [alarm.id]);
+        where: '$colId = ?',
+        whereArgs: [alarm.id],
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   List<Alarm> fromListOfMapToAlarmList(List<Map<String, dynamic>> list) {
@@ -80,14 +85,6 @@ class DbHelper {
       }
     }
     return alarmList;
-  }
-
-
-  Future<Map<String, dynamic>> getAlarmMapFromId(int id) async {
-    Map<String, dynamic> value;
-    List<Map<String, dynamic>> a = await getAlarmMapList();
-    value = a[0];
-    return value;
   }
 
   Future<int> getNoOfItems() async {
