@@ -4,9 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'scoped-model/Alarms.dart';
 
-import 'listView.dart';
+import 'imagelistView.dart';
 import 'Alarm.dart';
 import 'DropDown.dart';
+import 'widgets/ShadesView.dart';
 
 class AlarmView extends StatefulWidget {
   _AlarmViewState createState() => _AlarmViewState();
@@ -70,6 +71,7 @@ class _AlarmViewState extends State<AlarmView>
         model.refreshData();
         return Scaffold(
           floatingActionButton: FloatingActionButton.extended(
+            backgroundColor: Colors.lightGreenAccent,
             elevation: 4.0,
             icon: AnimatedIcon(
               icon: AnimatedIcons.add_event,
@@ -132,7 +134,8 @@ class _AlarmViewState extends State<AlarmView>
               ],
             ),
           ),
-          body: ListViewClass(),
+          //   body: ListViewClass(),
+          body: ShadesView(),
         );
       },
     );

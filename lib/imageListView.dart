@@ -7,12 +7,12 @@ import 'package:scoped_model/scoped_model.dart';
 import "Alarm.dart";
 import 'TileItem.dart';
 
-class ListViewClass extends StatefulWidget {
+class ImageListViewClass extends StatefulWidget {
   @override
-  _ListViewClassState createState() => _ListViewClassState();
+  _ImageListViewClassState createState() => _ImageListViewClassState();
 }
 
-class _ListViewClassState extends State<ListViewClass> {
+class _ImageListViewClassState extends State<ImageListViewClass> {
  
 
   @override
