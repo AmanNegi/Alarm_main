@@ -33,7 +33,16 @@ public class MusicService extends Service {
         player.setLooping(true);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(1000010000, VibrationEffect.DEFAULT_AMPLITUDE));
+            long[] pattern = new long[8];
+            pattern[0] = 500; 
+            pattern[1] = 950;  
+            pattern[2] = 50;   
+            pattern[3] = 500;  
+            pattern[4] = 50;
+            pattern[5] = 500;
+            pattern[6] = 50;
+            pattern[7] = 500;
+            vibrator.vibrate(VibrationEffect.createWaveform(pattern, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {
             //deprecated in API 26
             vibrator.vibrate(10000);
@@ -44,7 +53,7 @@ public class MusicService extends Service {
     }
 
 
-    public void increaseVolumeWithTime(final int maxVol) {
+    public void increaseVolumeWithTime(int maxVol) {
         Timer t = new Timer();
         t.scheduleAtFixedRate(new TimerTask() {
             int Vol = 5;
@@ -56,7 +65,7 @@ public class MusicService extends Service {
                     Vol++;
                 }
             }
-        }, 0, 5000);
+        }, 0, 10000);
 
     }
 

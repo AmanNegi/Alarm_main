@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -49,6 +49,27 @@
         app:layout_constraintHorizontal_bias="0.529"
         app:layout_constraintStart_toStartOf="@+id/wakeUpTextView"
         app:layout_constraintTop_toBottomOf="@+id/wakeUpTextView" />
+
+    <TextView
+        android:id="@+id/debugTextViewId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:text=""
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/wakeUpTextView" />
+
+    <TextView
+        android:textColor="#ffffff"
+        android:id="@+id/messageTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:text="defaultTExt"
+        app:layout_constraintEnd_toEndOf="@+id/wakeUpTextView"
+        app:layout_constraintStart_toStartOf="@+id/wakeUpTextView"
+        app:layout_constraintTop_toBottomOf="@+id/debugTextViewId" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

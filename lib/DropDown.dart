@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:dynamic_theme/dynamic_theme.dart';
 
@@ -10,10 +11,15 @@ class DropDown extends StatefulWidget {
 
 class _DropDownState extends State<DropDown> {
   List<String> themes = ['Dark', 'Light'];
-  String _selectedItem ;
+  String _selectedItem;
+
+  SystemUiOverlayStyle mySystemTheme = SystemUiOverlayStyle.dark
+      .copyWith(systemNavigationBarColor: Colors.black);
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(mySystemTheme);
+
     return Container(
       child: DropdownButtonFormField<String>(
         items: themes.map((value) {
@@ -28,8 +34,14 @@ class _DropDownState extends State<DropDown> {
           });
           if (_selectedItem == "Dark") {
             DynamicTheme.of(context).setBrightness(Brightness.dark);
+            mySystemTheme = SystemUiOverlayStyle.dark
+                .copyWith(systemNavigationBarColor: Colors.black);
           } else {
-            DynamicTheme.of(context).setBrightness(Brightness.light);
+            setState(() {
+              DynamicTheme.of(context).setBrightness(Brightness.light);
+              mySystemTheme = SystemUiOverlayStyle.light
+                  .copyWith(systemNavigationBarColor: Colors.white);
+            });
           }
         },
         hint: Text("Choose"),

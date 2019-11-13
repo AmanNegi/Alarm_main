@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -19,7 +18,7 @@ public class AlarmPage extends Activity {
 
     static boolean isRunning = false;
     Button dismissButton;
-    TextView wakeUpTextView;
+    TextView wakeUpTextView, debugTextView,messageTextView;
     AudioManager audioManager;
 
     @Override
@@ -39,18 +38,28 @@ public class AlarmPage extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.newactivity);
 
+
         System.out.println("In onCreate() [AlarmPage.java]");
 
 
         audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         dismissButton = findViewById(R.id.dismissButtonId);
         wakeUpTextView = findViewById(R.id.wakeUpTextView);
+        debugTextView = findViewById(R.id.debugTextViewId);
+        messageTextView = findViewById(R.id.messageTextView);
+
+        int hour = getIntent().getIntExtra("hour", 0);
+        int minute = getIntent().getIntExtra("minute", 0);
+        String message = getIntent().getStringExtra("message");
+
+        debugTextView.setText(hour + " : " + minute);
+        messageTextView.setText(message);
 
         //setting fonts
-        Typeface lightFont = Typeface.createFromAsset(this.getAssets(), "fonts/Raleway-Light.ttf");
-        Typeface boldFont = Typeface.createFromAsset(this.getAssets(), "fonts/Raleway-Bold.ttf");
-        wakeUpTextView.setTypeface(lightFont);
-        dismissButton.setTypeface(boldFont);
+        // Typeface lightFont = Typeface.createFromAsset(this.getAssets(), "fonts/Raleway-Light.ttf");
+        // Typeface boldFont = Typeface.createFromAsset(this.getAssets(), "fonts/Raleway-Bold.ttf");
+        //  wakeUpTextView.setTypeface(lightFont);
+        //dismissButton.setTypeface(boldFont);
 
         dismissButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,7 +77,6 @@ public class AlarmPage extends Activity {
         });
 
     }
-
 
 
     @Override

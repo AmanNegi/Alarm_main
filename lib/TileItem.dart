@@ -9,8 +9,9 @@ import 'Alarm.dart';
 class TileItem extends StatefulWidget {
   final Alarm alarm;
   final int index;
+  final Color color;
 
-  TileItem({this.alarm, this.index});
+  TileItem({this.alarm, this.index, this.color});
 
   @override
   _TileItemState createState() => _TileItemState();
@@ -33,7 +34,15 @@ class _TileItemState extends State<TileItem> {
     'Friday',
     'Saturday'
   ];
-  List<Map<String, bool>> daysWithBool = [];
+  List<Map<String, bool>> daysWithBool = [
+    {"Sunday": false},
+    {"Monday": false},
+    {"Tuesday": false},
+    {"Wednesday": false},
+    {"Thursday": false},
+    {"Friday": false},
+    {"Saturday": false},
+  ];
 
   void updateAlarm(Alarm alarm, Function update) async {
     print("index in alarm Update : ${widget.index}");
@@ -89,24 +98,31 @@ class _TileItemState extends State<TileItem> {
             child: CustomScrollView(
               slivers: <Widget>[
                 SliverAppBar(
-                  expandedHeight: 256.0,
-                  pinned: true,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Hero(
-                      child: FadeInImage(
-                        placeholder: AssetImage("assets/Images/coffee.jpg"),
-                        image: NetworkImage(
-                            "https://picsum.photos/485/384?image=${widget.alarm.id + 100}"),
-                        fit: BoxFit.cover,
-                      ),
-                      tag: widget.alarm.id,
-                    ),
-                    title: Text(widget.alarm.message),
+                  floating: true,
+                  leading: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   ),
+                  shape: StadiumBorder(),
+                  backgroundColor: widget.color,
+                  centerTitle: true,
+                  titleSpacing: 10.0,
+                  title: Text(
+                    widget.alarm.message,
+                    style: TextStyle(fontSize: 25.0),
+                  ),
+                  automaticallyImplyLeading: false,
+                  expandedHeight: 60.0,
+                  pinned: true,
                 ),
                 SliverList(
                   delegate: SliverChildListDelegate(
                     [
+                      SizedBox(
+                        height: 40.0,
+                      ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: EnsureVisibleWhenFocused(
@@ -116,7 +132,7 @@ class _TileItemState extends State<TileItem> {
                               key: _formKey,
                               child: TextFormField(
                                 validator: (value) {
-                                  if (value.length > 5) {
+                                  if (value.length > 15) {
                                     return 'Enter a small message for the alarm...';
                                   }
                                   return null;
@@ -151,14 +167,15 @@ class _TileItemState extends State<TileItem> {
                             return Padding(
                               padding: EdgeInsets.all(5.0),
                               child: ChoiceChip(
-                                selectedColor: Theme.of(context).accentColor,
+                                selectedColor: Colors.tealAccent,
                                 padding: EdgeInsets.all(10.0),
                                 elevation: 10.0,
                                 onSelected: (bool val) {
                                   setState(() {
                                     intList[index] = val == true ? 1 : 0;
                                     isSelected[index] = val;
-                                    daysWithBool.add({daysFull[index]: val});
+                                    daysWithBool
+                                        .insert(index, {daysFull[index]: val});
                                     print(" Selected terms  $isSelected");
                                   });
                                   print(isSelected.toString());
@@ -169,6 +186,9 @@ class _TileItemState extends State<TileItem> {
                             );
                           },
                         ),
+                      ),
+                      SizedBox(
+                        height: 20.0,
                       ),
                       RaisedButton(
                         child: Text("Update alarm"),
@@ -186,6 +206,7 @@ class _TileItemState extends State<TileItem> {
                             updateAlarm(alarm, model.updateProduct);
                             print("The text required here " +
                                 alarm.listInt.toString());
+                            Navigator.pop(context);
                           }
                         },
                       ),

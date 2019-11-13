@@ -1,10 +1,9 @@
 import "package:flutter/material.dart";
-import 'package:flutter/services.dart';
 
+import 'package:flutter/services.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'scoped-model/Alarms.dart';
 
-import 'imagelistView.dart';
 import 'Alarm.dart';
 import 'DropDown.dart';
 import 'widgets/ShadesView.dart';
@@ -16,13 +15,17 @@ class AlarmView extends StatefulWidget {
 class _AlarmViewState extends State<AlarmView>
     with SingleTickerProviderStateMixin {
   String dropDownVal;
+  bool permit = false;
   AnimationController controller;
+  final MethodChannel platform = MethodChannel("aster.flutter.app/alarm");
+
   bool isPlaying = false;
 
   @override
   void initState() {
-    print("In initState() [AlarmView.dart]");
     super.initState();
+    print("In initState() [AlarmView.dart]");
+    getPermissions();
     controller = new AnimationController(
         vsync: this, duration: Duration(milliseconds: 500));
   }
@@ -42,7 +45,7 @@ class _AlarmViewState extends State<AlarmView>
           Alarm alarm = new Alarm(
               hour: hour,
               minute: minute,
-              message: "randomMessage",
+              message: "New Alarm",
               timeString: value.format(context));
 
           addAlarm(alarm);
@@ -58,6 +61,17 @@ class _AlarmViewState extends State<AlarmView>
     );
   }
 
+  void getPermissions() {
+    print("inGetPermissions");
+    platform.invokeMethod("getPermission").then((value) {
+      if (value == true || value == "true") {
+        setState(() {
+          permit = true;
+        });
+      }
+    });
+  }
+
   void _handleOnPressed() {
     setState(() {
       isPlaying ? controller.forward() : controller.reverse();
@@ -68,10 +82,11 @@ class _AlarmViewState extends State<AlarmView>
   Widget build(BuildContext context) {
     return ScopedModelDescendant<AlarmModel>(
       builder: (BuildContext context, Widget child, AlarmModel model) {
+        model.setPermit(permit);
         model.refreshData();
         return Scaffold(
           floatingActionButton: FloatingActionButton.extended(
-            backgroundColor: Colors.lightGreenAccent,
+            backgroundColor: Theme.of(context).accentColor,
             elevation: 4.0,
             icon: AnimatedIcon(
               icon: AnimatedIcons.add_event,
@@ -104,12 +119,6 @@ class _AlarmViewState extends State<AlarmView>
                         builder: (BuildContext context) {
                           return Column(
                             children: <Widget>[
-                              SwitchListTile(
-                                value: true,
-                                title: Text("Show network images"),
-                                onChanged: (value) {},
-                              ),
-                              Divider(),
                               Row(
                                 children: <Widget>[
                                   Expanded(
@@ -134,7 +143,6 @@ class _AlarmViewState extends State<AlarmView>
               ],
             ),
           ),
-          //   body: ListViewClass(),
           body: ShadesView(),
         );
       },

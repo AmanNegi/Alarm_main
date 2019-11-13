@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 import 'Alarm.dart';
-import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 
 class DbHelper {
@@ -29,7 +28,7 @@ class DbHelper {
   Future<void> initalizeDb() async {
     // * * some official work on here...
     Directory directory = await getApplicationDocumentsDirectory();
-    String path = directory.path + 'alarm.db';
+    String path = directory.path + '/alarm.db';
 
     // ** creating the table n columns for database
     database = await openDatabase(path, version: 1, onCreate: createDb);

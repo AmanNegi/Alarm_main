@@ -6,6 +6,7 @@ import '../Alarm.dart';
 
 class AlarmModel extends Model {
   List<Alarm> _alarms = [];
+  bool permit = false;
   final MethodChannel platform = MethodChannel("aster.flutter.app/alarm");
 
   DbHelper dbHelper = new DbHelper();
@@ -23,20 +24,32 @@ class AlarmModel extends Model {
     });
   }
 
+  void setPermit(bool value) {
+    permit = value;
+  }
   Future<void> addProduct(Alarm alarm) async {
-    dbHelper.initalizeDb().then((value) async {
-      int id = await dbHelper.insertAlarm(alarm);
-      platform.invokeListMethod("addAlarm",
-          {'uniqueId': id, 'hour': alarm.hour, 'minute': alarm.minute});
-      Alarm alarmWithID = Alarm.withId(
-          id: id,
-          hour: alarm.hour,
-          minute: alarm.minute,
-          message: alarm.message,
-          timeString: alarm.timeString);
-      _alarms.add(alarmWithID);
-      notifyListeners();
-    });
+    if (permit) {
+      dbHelper.initalizeDb().then((value) async {
+        int id = await dbHelper.insertAlarm(alarm);
+        platform.invokeListMethod("addAlarm", {
+          'uniqueId': id,
+          'hour': alarm.hour,
+          'minute': alarm.minute,
+          "message": alarm.message
+        });
+        Alarm alarmWithID = Alarm.withId(
+            id: id,
+            hour: alarm.hour,
+            minute: alarm.minute,
+            message: alarm.message,
+            timeString: alarm.timeString);
+        _alarms.add(alarmWithID);
+        notifyListeners();
+      });
+    } else {
+      
+    }
+
     //adding files to SQFLITE database
   }
 
