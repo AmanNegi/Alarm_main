@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,7 +19,7 @@ public class AlarmPage extends Activity {
 
     static boolean isRunning = false;
     Button dismissButton;
-    TextView wakeUpTextView, debugTextView,messageTextView;
+    TextView wakeUpTextView, debugTextView, messageTextView;
     AudioManager audioManager;
 
     @Override
@@ -48,11 +49,10 @@ public class AlarmPage extends Activity {
         debugTextView = findViewById(R.id.debugTextViewId);
         messageTextView = findViewById(R.id.messageTextView);
 
-        int hour = getIntent().getIntExtra("hour", 0);
-        int minute = getIntent().getIntExtra("minute", 0);
         String message = getIntent().getStringExtra("message");
+        String timeString = getIntent().getStringExtra("timeString");
 
-        debugTextView.setText(hour + " : " + minute);
+        debugTextView.setText(timeString);
         messageTextView.setText(message);
 
         //setting fonts
@@ -78,6 +78,13 @@ public class AlarmPage extends Activity {
 
     }
 
+    @Override
+    public void onAttachedToWindow() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                + WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                +WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                +WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+    }
 
     @Override
     protected void onPause() {

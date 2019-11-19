@@ -19,65 +19,26 @@ class TileItem extends StatefulWidget {
 
 class _TileItemState extends State<TileItem> {
   var myFocusNode = new FocusNode();
-  static const platform = const MethodChannel('samples.flutter.dev/alarm');
   final _formKey = GlobalKey<FormState>();
   String messageText;
-  List<int> intList = [0, 0, 0, 0, 0, 0, 0];
-  List<String> days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  List<bool> isSelected = [false, false, false, false, false, false, false];
-  List<String> daysFull = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday'
-  ];
-  List<Map<String, bool>> daysWithBool = [
-    {"Sunday": false},
-    {"Monday": false},
-    {"Tuesday": false},
-    {"Wednesday": false},
-    {"Thursday": false},
-    {"Friday": false},
-    {"Saturday": false},
-  ];
+  bool repeating;
+  bool customPath;
+  String path = "Select a file to see Text here";
+  final MethodChannel platform = MethodChannel("aster.flutter.app/alarm/aster");
 
   void updateAlarm(Alarm alarm, Function update) async {
     print("index in alarm Update : ${widget.index}");
-    update(alarm, widget.index, daysWithBool);
+    update(alarm, widget.index);
   }
 
   @override
   void initState() {
-    print(" init state() " + widget.alarm.listInt.toString());
-    setIntList();
     super.initState();
-    myFocusNode = FocusNode();
-  }
-
-  void setIntList() {
     setState(() {
-      this.messageText = widget.alarm.message;
-      this.intList = widget.alarm.listInt;
+      messageText = widget.alarm.message;
+      repeating = widget.alarm.repeating == 1 ? true : false;
     });
-  }
-
-  List<int> getIntListFromMapList() {
-    List<int> getIntList = [];
-    for (int a = 0; a < isSelected.length; a++) {
-      getIntList.add(isSelected[a] ? 1 : 0);
-    }
-    return getIntList;
-  }
-
-  List<bool> fromIntListToBoolList(List<int> intList) {
-    List<bool> boolList = [];
-    for (int i = 0; i < intList.length; i++) {
-      boolList.add(intList[i] == 1 ? true : false);
-    }
-    return boolList;
+    myFocusNode = FocusNode();
   }
 
   @override
@@ -159,32 +120,34 @@ class _TileItemState extends State<TileItem> {
                       ), //filterChip
 
                       Container(
-                        height: 70.0,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 7,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Padding(
-                              padding: EdgeInsets.all(5.0),
-                              child: ChoiceChip(
-                                selectedColor: Colors.tealAccent,
-                                padding: EdgeInsets.all(10.0),
-                                elevation: 10.0,
-                                onSelected: (bool val) {
-                                  setState(() {
-                                    intList[index] = val == true ? 1 : 0;
-                                    isSelected[index] = val;
-                                    daysWithBool
-                                        .insert(index, {daysFull[index]: val});
-                                    print(" Selected terms  $isSelected");
-                                  });
-                                  print(isSelected.toString());
-                                },
-                                selected: fromIntListToBoolList(intList)[index],
-                                label: Text(days[index]),
-                              ),
-                            );
-                          },
+                        child: ListTile(
+                          leading: Text("Repeating"),
+                          trailing: Checkbox(
+                            value: repeating,
+                            onChanged: (value) {
+                              repeating = value;
+                            },
+                          ),
+                        ),
+                      ),
+                      Container(
+                        child: ListTile(
+                          leading: Text("Select custom music"),
+                            subtitle: Text(path),
+                          trailing: IconButton(
+                            icon: Icon(Icons.radio),
+                            onPressed: () async {
+                              String path =
+                                  await platform.invokeMethod("getMusicPicker");
+                              print(path + 'in Flutter ');
+                              if (!(path.length <= 0)) {
+                                setState(() {
+                                  customPath = true;
+                                  this.path = path;
+                                });
+                              }
+                            },
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -195,17 +158,17 @@ class _TileItemState extends State<TileItem> {
                         onPressed: () {
                           if (_formKey.currentState.validate()) {
                             _formKey.currentState.save();
+                            Alarm alarm = Alarm.withId(
+                              customPath: 0,
+                              repeating: repeating ? 1 : 0,
+                              message: messageText,
+                              id: widget.alarm.id,
+                              hour: widget.alarm.hour,
+                              minute: widget.alarm.minute,
+                              timeString: widget.alarm.timeString,
+                            );
 
-                            Alarm alarm = Alarm.withInt(
-                                message: messageText,
-                                id: widget.alarm.id,
-                                hour: widget.alarm.hour,
-                                minute: widget.alarm.minute,
-                                timeString: widget.alarm.timeString,
-                                listInt: intList);
                             updateAlarm(alarm, model.updateProduct);
-                            print("The text required here " +
-                                alarm.listInt.toString());
                             Navigator.pop(context);
                           }
                         },

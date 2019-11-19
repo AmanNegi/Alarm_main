@@ -14,8 +14,10 @@ class DbHelper {
   String colHour = "hour";
   String colMinute = "minute";
   String colMessage = "message";
+  String colCustomMusic = "customMusic";
+  String colMusicPath = "musicPath";
   String colTimeString = "timeString";
-  String colIntList = "listInt";
+  String colRepeating = "repeating";
 
   Future<Database> get getDatabase async {
     //check if database is not null
@@ -37,7 +39,7 @@ class DbHelper {
   void createDb(Database db, int newVersion) async {
     print('creating db');
     await db.execute(
-        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colIntList BLOB)');
+        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colRepeating INTEGER, $colCustomMusic INTEGER, $colMusicPath TEXT)');
   }
 
   // ! adding alarm here...
@@ -65,7 +67,7 @@ class DbHelper {
 
   // ! updating alarm here...
   Future<int> updateAlarm(Alarm alarm) async {
-    print("in update Alarm  ${alarm.listInt.toString()}");
+
     return await database.update(tableName, alarm.toMap(),
         where: '$colId = ?',
         whereArgs: [alarm.id],

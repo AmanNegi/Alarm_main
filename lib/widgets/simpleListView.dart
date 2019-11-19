@@ -26,58 +26,6 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
     super.initState();
   }
 
-  String getTextAccToList() {
-    StringBuffer firstDay = StringBuffer();
-    List<int> intList = widget.alarm.listInt;
-    int length = intList.length;
-    List<String> stringList = [];
-
-    for (int i = 0; i < length; i++) {
-      if (intList[i] == 1) {
-        stringList.add(getStrings(i));
-      }
-    }
-    if (stringList.length == 1) {
-      return stringList[0];
-    } else if (stringList.length > 1) {
-      firstDay.write(stringList[0]);
-      for (int i = 1; i < stringList.length; i++) {
-        firstDay.write("," + stringList[i]);
-      }
-      return firstDay.toString();
-    } else {
-      return "";
-    }
-  }
-
-  String getStrings(int index) {
-    String a;
-    switch (index) {
-      case 0:
-        a = ("Sun");
-        break;
-      case 1:
-        a = ("Mon");
-        break;
-      case 2:
-        a = ("Tue");
-        break;
-      case 3:
-        a = ("Wed");
-        break;
-      case 4:
-        a = ("Thu");
-        break;
-      case 5:
-        a = ("Fri");
-        break;
-      case 6:
-        a = ("Sat");
-        break;
-    }
-    return a;
-  }
-
   @override
   Widget build(BuildContext context) {
     Alarm alarmNew = widget.alarm;
@@ -98,6 +46,8 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
             if (direction == DismissDirection.startToEnd) {
               model.deleteProduct(alarmNew.id, index);
               Scaffold.of(context).showSnackBar(SnackBar(
+                duration: Duration(seconds: 3),
+                elevation: 50.0,
                 backgroundColor: Theme.of(context).primaryColor,
                 action: SnackBarAction(
                   label: "Ok",
@@ -122,9 +72,6 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
             title: Text(
               alarmNew.timeString,
               style: TextStyle(fontSize: 30.0),
-            ),
-            subtitle: Text(
-              getTextAccToList(),
             ),
           ),
         );

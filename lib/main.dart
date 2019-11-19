@@ -15,8 +15,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  SystemUiOverlayStyle mySystemTheme = SystemUiOverlayStyle.dark
-      .copyWith(systemNavigationBarColor: Colors.black);
+  SystemUiOverlayStyle mySystemTheme = SystemUiOverlayStyle.dark.copyWith(
+    systemNavigationBarColor: Colors.black,
+  );
 
   @override
   void initState() {

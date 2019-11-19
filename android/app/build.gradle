@@ -56,6 +56,8 @@ flutter {
 }
 
 dependencies {
+    //noinspection GradleCompatible
+    implementation 'com.android.support:support-compat:28.0.0@aar'
     androidTestImplementation 'com.android.support.constraint:constraint-layout:2.0.0-beta2'
     testImplementation 'junit:junit:4.12'
 

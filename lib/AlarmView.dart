@@ -15,9 +15,7 @@ class AlarmView extends StatefulWidget {
 class _AlarmViewState extends State<AlarmView>
     with SingleTickerProviderStateMixin {
   String dropDownVal;
-  bool permit = false;
   AnimationController controller;
-  final MethodChannel platform = MethodChannel("aster.flutter.app/alarm");
 
   bool isPlaying = false;
 
@@ -25,12 +23,11 @@ class _AlarmViewState extends State<AlarmView>
   void initState() {
     super.initState();
     print("In initState() [AlarmView.dart]");
-    getPermissions();
     controller = new AnimationController(
         vsync: this, duration: Duration(milliseconds: 500));
   }
 
-  void openTimePicker(Function addAlarm) {
+  void openTimePicker(Function addAlarm, Function preExists) {
     showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
@@ -43,12 +40,37 @@ class _AlarmViewState extends State<AlarmView>
 
           print(value.format(context));
           Alarm alarm = new Alarm(
+              customPath: 0,
+              repeating: 0,
               hour: hour,
               minute: minute,
               message: "New Alarm",
               timeString: value.format(context));
 
-          addAlarm(alarm);
+          preExists(alarm).then((booleanValue) {
+            print("Value in alarmView of preExists == " +
+                booleanValue.toString());
+            if (!booleanValue) {
+              addAlarm(alarm);
+            } else {
+              Scaffold.of(context).showSnackBar(
+                SnackBar(
+                  duration: Duration(seconds: 3),
+                  elevation: 50.0,
+                  content: Text(
+                    "The alarm pre-exists",
+                    style:
+                        TextStyle(color: Theme.of(context).primaryColorLight),
+                  ),
+                  backgroundColor: Theme.of(context).backgroundColor,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                ),
+              );
+            }
+          });
         } else {
           print("no value selected by user");
         }
@@ -61,17 +83,6 @@ class _AlarmViewState extends State<AlarmView>
     );
   }
 
-  void getPermissions() {
-    print("inGetPermissions");
-    platform.invokeMethod("getPermission").then((value) {
-      if (value == true || value == "true") {
-        setState(() {
-          permit = true;
-        });
-      }
-    });
-  }
-
   void _handleOnPressed() {
     setState(() {
       isPlaying ? controller.forward() : controller.reverse();
@@ -82,7 +93,6 @@ class _AlarmViewState extends State<AlarmView>
   Widget build(BuildContext context) {
     return ScopedModelDescendant<AlarmModel>(
       builder: (BuildContext context, Widget child, AlarmModel model) {
-        model.setPermit(permit);
         model.refreshData();
         return Scaffold(
           floatingActionButton: FloatingActionButton.extended(
@@ -101,7 +111,7 @@ class _AlarmViewState extends State<AlarmView>
                 isPlaying = true;
               });
               _handleOnPressed();
-              openTimePicker(model.addProduct);
+              openTimePicker(model.addAlarm, model.preExists);
             },
           ),
           floatingActionButtonLocation:

@@ -13,13 +13,18 @@ public class wakeFulReceiver extends BroadcastReceiver {
         Intent i = new Intent();
         i.setClassName("com.example.alarm_main", "com.example.alarm_main.AlarmPage");
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        int hour = intent.getIntExtra("hour", 0);
-        int minute = intent.getIntExtra("minute", 0);
-        String message = intent.getStringExtra("message");
 
-        i.putExtra("hour",hour);
-        i.putExtra("minute",minute);
-        i.putExtra("message",message);
+        String timeString = intent.getStringExtra("timeString");
+        String message = intent.getStringExtra("message");
+        boolean customPath = intent.getBooleanExtra("customPath", false);
+        if (customPath) {
+            String path = intent.getStringExtra("path");
+            i.putExtra("path", path);
+        }
+
+        i.putExtra("customPath",customPath);
+        i.putExtra("message", message);
+        i.putExtra("timeString", timeString);
 
         context.startActivity(i);
 
@@ -27,6 +32,7 @@ public class wakeFulReceiver extends BroadcastReceiver {
             @Override
             public void run() {
                 //  context.startService(new Intent(context, MusicService.class));
+
                 context.startService(new Intent(context, NotificationService.class));
             }
         };
@@ -35,12 +41,12 @@ public class wakeFulReceiver extends BroadcastReceiver {
             @Override
             public void run() {
                 //  context.startService(new Intent(context, MusicService.class));
+                Intent musicServiceIntent = new Intent(context, MusicService.class);
+                musicServiceIntent.putExtra("customPath", false);
                 context.startService(new Intent(context, MusicService.class));
             }
         };
         threadTwo.start();
-
-
     }
 
 }

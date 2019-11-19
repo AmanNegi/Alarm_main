@@ -1,10 +1,11 @@
 import "package:flutter/foundation.dart";
 
 class Alarm {
-  List<bool> isSelected = [false, false, false, false, false, false, false];
-  List<int> listInt = [0,0,0,0,0,0,0];
   int id;
+  int customPath;
   int hour;
+  String path;
+  int repeating;
   int minute;
   String message = "Random predefined Text";
   String timeString;
@@ -14,26 +15,22 @@ class Alarm {
   Alarm.withId({
     this.id,
     @required this.hour,
+    @required this.customPath,
+    @required this.repeating,
     @required this.minute,
     @required this.timeString,
-    this.isSelected,
+    this.path,
     this.message,
   });
 
-  Alarm.withInt({
-    this.id,
-    @required this.hour,
-    @required this.minute,
-    @required this.timeString,
-    @required this.listInt,
-    this.message,
-  });
 // default Constructor
   Alarm({
     @required this.hour,
+    @required this.repeating,
+    @required this.customPath,
     @required this.minute,
-    this.isSelected,
     @required this.timeString,
+    this.path,
     this.message,
   });
 
@@ -42,8 +39,10 @@ class Alarm {
     this.hour = map['hour'];
     this.minute = map['minute'];
     this.message = map['message'];
+    this.customPath = map['customMusic'];
     this.timeString = map['timeString'];
-    this.listInt = map['listInt'];
+    this.path = map['musicPath'];
+    this.repeating = map['repeating'];
   }
 
   Map<String, dynamic> toMap() {
@@ -54,8 +53,10 @@ class Alarm {
     map['hour'] = hour;
     map['minute'] = minute;
     map['message'] = message;
+    map['musicPath'] = path;
+    map['customMusic'] = customPath;
     map['timeString'] = timeString;
-    map['listInt'] = listInt;
+    map['repeating'] = repeating;
     return map;
   }
 }

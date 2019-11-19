@@ -4,162 +4,91 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
+import android.support.v4.app.AlarmManagerCompat;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.KITKAT;
+class Functions {
 
-public class Functions {
-
-    private Integer trueCount = 0;
-    private Integer hour;
-    private Integer minute;
-    private Integer uniqueID;
+    private String timeString;
     private String message;
     private Context context;
+    private Boolean customPath;
+    private String path;
 
-    Functions(Integer hour, Integer minute, Integer uniqueID, String message, Context context) {
-        this.hour = hour;
-        this.minute = minute;
+    Functions(String message, Context context, String timeString) {
+        this.timeString = timeString;
         this.message = message;
-        this.uniqueID = uniqueID;
         this.context = context;
     }
 
+    private void setOneShot(Context context, int requestCode, long startMillis) {
+        print("in setOneShot");
+        scheduleAlarm(context, requestCode, false, startMillis, 0);
 
-    void startUpdateProcess(ArrayList<HashMap<String, Boolean>> value) {
-        System.out.println(" in startUpdateProcess()  [MainActivity.java] " + value.get(0));
-        for (HashMap<String, Boolean> map : value) {
-            for (Map.Entry<String, Boolean> mapEntry : map.entrySet()) {
-                String key = mapEntry.getKey();
-                Boolean bool = mapEntry.getValue();
-                checkValues(key, bool);
-            }
+    }
+
+    private void setPeriodic(Context context, int requestCode,
+                             long startMillis) {
+        print("in setPeriodic");
+        scheduleAlarm(context, requestCode, true, startMillis, AlarmManager.INTERVAL_DAY);
+
+
+    }
+
+    private void scheduleAlarm(
+            Context context,
+            int requestCode,
+            boolean repeating,
+            long startMillis,
+            long intervalMillis) {
+
+        // Create an Intent for the alarm and set the desired Dart callback handle.
+        Intent alarm = new Intent(context, wakeFulReceiver.class);
+        alarm.putExtra("timeString", timeString);
+        alarm.putExtra("message", message != null ? message : "It's time to wake up");
+        alarm.putExtra("customPath", customPath);
+        if(customPath){
+            alarm.putExtra("path",path);
         }
-    }
 
-    void checkValues(String string, Boolean bool) {
-        if (bool) {
-            trueCount++;
-            switch (string) {
-                case "Monday":
-                    setValuesForAddingAlarm(2);
-                    break;
-                case "Tuesday":
-                    setValuesForAddingAlarm(3);
-                    break;
-                case "Wednesday":
-                    setValuesForAddingAlarm(4);
-                    break;
-                case "Thursday":
-                    setValuesForAddingAlarm(5);
-                    break;
-                case "Friday":
-                    setValuesForAddingAlarm(6);
-                    break;
-                case "Saturday":
-                    setValuesForAddingAlarm(7);
-                    break;
-                case "Sunday":
-                    setValuesForAddingAlarm(1);
-                    break;
-            }
-        } else if (trueCount == 0) {
-            setValuesForAddingAlarm(Calendar.getInstance().get(Calendar.DAY_OF_WEEK));
-            trueCount++;
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(context, requestCode, alarm, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // Use the appropriate clock.
+        int clock = AlarmManager.RTC_WAKEUP;
+
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        if (repeating) {
+            manager.setRepeating(clock, startMillis, intervalMillis, pendingIntent);
+        } else {
+            AlarmManagerCompat.setExactAndAllowWhileIdle(manager, clock, startMillis, pendingIntent);
         }
+        message = "";
+        timeString = "";
+        path = "";
+        customPath = false;
     }
 
-
-    void setValuesForAddingAlarm(int week) {
-        updateAlarm(hour, minute, uniqueID, week);
-        System.out.println(" [updateAlarmProcess()] Week value selected are : " + week);
-    }
-
-    void updateAlarm(Integer hour, Integer minute, Integer uniqueId, Integer week) {
-        AlarmManager alarmManager;
-
-        final Intent broadcastReceiverIntent = new Intent(context, wakeFulReceiver.class);
-        broadcastReceiverIntent.putExtra("hour", hour);
-        broadcastReceiverIntent.putExtra("minute", minute);
-        broadcastReceiverIntent.putExtra("message", message != null ? message : "It's time to wake up");
-
-        final PendingIntent pendingIntent = PendingIntent.getBroadcast(context, uniqueId, broadcastReceiverIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
+    void setRepeatingAlarm(Integer hour, Integer minute, Integer uniqueID, Boolean customPath, String path) {
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_WEEK, week);
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
 
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.SECOND, 0);
-
-        int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-
-        int dateInt;
-        if (week <= dayOfWeek && week != 0 && calendar.getTime().before(cal.getTime())) {
-            calendar.add(Calendar.DAY_OF_MONTH, 7);
-            dateInt = calendar.getTime().getDate();
-        } else {
-            dateInt = calendar.getTime().getDate();
+        this.customPath = customPath;
+        if(customPath){
+            this.path = path;
         }
 
-        calendar.set(Calendar.DATE, dateInt);
-
-        int hourMain = getNoOfDays(calendar);
-
-        long difference;
-        if (calendar.after(cal)) {
-            difference = calendar.getTimeInMillis() - cal.getTimeInMillis();
-            print(" difference is :-  " + difference);
-            if (hourMain == 0) {
-                if (SDK_INT >= 21) {
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                } else {
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                }
-            } else {
-                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), hourMain * 24 * 60 * 60 * 1000, pendingIntent);
-            }
-        }
-        System.out.println("[ updateAlarm() ]  Updated alarm with id  = " + uniqueId.toString() + " and the rest data " + calendar.getTime());
+        setPeriodic(context, uniqueID, calendar.getTimeInMillis());
     }
 
-    int getNoOfDays(Calendar calendar) {
 
-        int days = 0;
-
-        Calendar calInstance = Calendar.getInstance();
-
-        if (calendar.after(calInstance)) {
-            Date one = calendar.getTime();
-            Date two = calInstance.getTime();
-
-            int date = one.getDate() - two.getDate();
-
-            if (date <= 7) {
-
-                days = date;
-
-            }
-        }
-        print(" days value = " + days);
-        return days;
-
-    }
-
-    void print(String value) {
+    private void print(String value) {
         System.out.println(value);
     }
 
@@ -171,27 +100,19 @@ public class Functions {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         alarmManager.cancel(pendingIntent);
-        System.out.println("Cancelled alarm with id = " + id.toString());
+        print("Cancelled alarm with id = " + id.toString());
     }
 
-    void setAlarm(Integer hour, Integer minute, Integer uniqueId) {
-        AlarmManager alarmManager;
-
-        final Intent broadcastReceiverIntent = new Intent(context, wakeFulReceiver.class);
-        broadcastReceiverIntent.putExtra("hour", hour);
-        broadcastReceiverIntent.putExtra("minute", minute);
-        broadcastReceiverIntent.putExtra("message", message != null ? message : "It's time to wake up");
-
-        final PendingIntent pendingIntent = PendingIntent.getBroadcast(context, uniqueId, broadcastReceiverIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-
+    void setAlarm(Integer hour, Integer minute, Integer uniqueID, Boolean customPath, String path) {
         Calendar calendar = Calendar.getInstance();
-
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
-        calendar.set(Calendar.SECOND, 0);
+
+        //initialising values
+         this.customPath = customPath;
+         if(customPath){
+             this.path = path;
+         }
 
         Date currentTime = new Date();
         Date selectedTime = calendar.getTime();
@@ -203,14 +124,15 @@ public class Functions {
         Date finalDateObj = calendar.getTime();
 
         printDifference(currentTime, finalDateObj, context);
-        System.out.println("[setAlarm()] the time of alarm " + calendar.getTimeInMillis());
-        if (SDK_INT >= KITKAT) {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-        }
+        long startMillis = calendar.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
+        print("[setAlarm()] the time of alarm " + startMillis);
+
+        setOneShot(context, uniqueID, calendar.getTimeInMillis());
 
     }
 
-    public void printDifference(Date startDate, Date endDate, Context context) {
+
+    private void printDifference(Date startDate, Date endDate, Context context) {
         //milliseconds
         long different = endDate.getTime() - startDate.getTime();
 

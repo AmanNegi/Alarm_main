@@ -16,8 +16,7 @@ public class RestartReceiver extends BroadcastReceiver {
     String colHour = "hour";
     String colMinute = "minute";
     String colMessage = "message";
-    String colTimeString = "timeString";
-    String colIntList = "listInt";
+    String colRepeating = "repeating";
 
 
     @Override
@@ -25,107 +24,61 @@ public class RestartReceiver extends BroadcastReceiver {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
 
             //Toast.makeText(context, "reStarting services", Toast.LENGTH_SHORT).show();
-            String path = context.getFilesDir().getPath();
             SQLiteDatabase database = SQLiteDatabase.openDatabase("/data/user/0/com.example.alarm_main/app_flutter/alarm.db", null, 0);
 
-            ArrayList<String> message = new ArrayList<>();
-            ArrayList<Integer> hour = new ArrayList<>();
-            ArrayList<Integer> minute = new ArrayList<>();
-            ArrayList<Integer> id = new ArrayList<>();
-            ArrayList<ArrayList<Integer>> daysList = new ArrayList<>();
+            if (database != null) {
+                ArrayList<String> message = new ArrayList<>();
+                ArrayList<Integer> hour = new ArrayList<>();
+                ArrayList<Integer> minute = new ArrayList<>();
+                ArrayList<Integer> id = new ArrayList<>();
+                ArrayList<Boolean> repeating = new ArrayList<>();
+                ArrayList<String> timeString = new ArrayList<>();
 
 
-            String[] columns = {colId, colHour, colMinute, colMessage, colIntList};
-            Cursor cursor = database.query(tableName, columns, null, null, null, null, null);
-            cursor.moveToFirst();
+                String[] columns = {colId, colHour, colMinute, colMessage, colRepeating};
+                Cursor cursor = database.query(tableName, columns, null, null, null, null, null);
+                cursor.moveToFirst();
 
-            //format of table
-            //   || id | hour | minute | message | timeString | listInt ||
+                //format of table
+                //   || 0. id |1. hour |2. minute |3. message |4. timeString |5. repeating
 
-            id.add(cursor.getInt(0));
-            hour.add(cursor.getInt(1));
-            minute.add(cursor.getInt(2));
-            message.add(cursor.getString(3));
-            byte[] a = cursor.getBlob(5);
-
-
-            ArrayList<Integer> ad = new ArrayList<>();
-            for (byte l : a) {
-                ad.add(Integer.valueOf(l));
-            }
-            daysList.add(ad);
-
-
-            while (cursor.moveToNext()) {
                 id.add(cursor.getInt(0));
                 hour.add(cursor.getInt(1));
                 minute.add(cursor.getInt(2));
                 message.add(cursor.getString(3));
-                byte[] io = cursor.getBlob(5);
-                ArrayList<Integer> lm = new ArrayList<>();
-                for (byte l : io) {
-                    lm.add(Integer.valueOf(l));
+                timeString.add(cursor.getString(4));
+                repeating.add(cursor.getInt(5) == 1);
+
+
+                while (cursor.moveToNext()) {
+                    id.add(cursor.getInt(0));
+                    hour.add(cursor.getInt(1));
+                    minute.add(cursor.getInt(2));
+                    message.add(cursor.getString(3));
+                    timeString.add(cursor.getString(4));
+                    repeating.add(cursor.getInt(5) == 1);
+
                 }
-                daysList.add(lm);
-            }
-            for (int i = 0; i < hour.size(); i++) {
-                int mainHour = hour.get(i);
-                int mainMinute = minute.get(i);
-                int mainUniqueID = id.get(i);
-                String mainMessage = message.get(i);
-                ArrayList<HashMap<String, Boolean>> harshList = createHashMap(daysList.get(i));
+                for (int i = 0; i < hour.size(); i++) {
+                    int mainHour = hour.get(i);
+                    int mainMinute = minute.get(i);
+                    int mainUniqueID = id.get(i);
+                    String mainMessage = message.get(i);
+                    Boolean mainRepeating = repeating.get(i);
+                    String mainTimeString = timeString.get(i);
+                    Functions functions = new Functions(mainMessage, context, mainTimeString);
 
-                Functions functions = new Functions(mainHour, mainMinute, mainUniqueID, mainMessage, context);
+                    if (mainRepeating) {
+                        functions.setRepeatingAlarm(mainHour, mainMinute, mainUniqueID,false,"");
+                    } else {
+                        functions.setAlarm(mainHour, mainMinute, mainUniqueID,false,"");
+                    }
 
-                functions.startUpdateProcess(harshList);
-            }
-        }
-
-
-    }
-
-    ArrayList<HashMap<String, Boolean>> createHashMap(ArrayList<Integer> integers) {
-
-        ArrayList<HashMap<String, Boolean>> randomList = new ArrayList<>();
-        for (int l = 0; l < integers.size(); l++) {
-            HashMap<String, Boolean> var = new HashMap<>();
-            for (int i = 0; i < 7; i++) {
-                switch (i) {
-                    case 0:
-                        var.put("Sunday", getTrueOrFalse(integers.get(i)));
-                        break;
-                    case 1:
-                        var.put("Monday", getTrueOrFalse(integers.get(i)));
-                        break;
-                    case 2:
-                        var.put("Tuesday", getTrueOrFalse(integers.get(i)));
-                        break;
-                    case 3:
-                        var.put("Wednesday", getTrueOrFalse(integers.get(i)));
-                        break;
-                    case 4:
-                        var.put("Thursday", getTrueOrFalse(integers.get(i)));
-                        break;
-                    case 5:
-                        var.put("Friday", getTrueOrFalse(integers.get(i)));
-                        break;
-                    case 6:
-                        var.put("Saturday", getTrueOrFalse(integers.get(i)));
-                        break;
                 }
-                randomList.add(var);
-                var = new HashMap<>();
-
+                cursor.close();
             }
         }
-        return randomList;
-    }
 
-    boolean getTrueOrFalse(Integer no) {
-        if (no == 1) {
-            return true;
-        } else {
-            return false;
-        }
+
     }
 }
