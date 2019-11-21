@@ -18,7 +18,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MusicService extends Service {
-    boolean customPath;
+    Boolean customPath;
     String path;
     MediaPlayer player;
     Vibrator vibrator;
@@ -59,8 +59,12 @@ public class MusicService extends Service {
     void doWork() {
         checkWriteExternalPermission();
         System.out.println("Started the music Service  customMusic = " + customPath);
+        System.out.println("The values in the MusicService.java " + path + customPath);
+
         if (customPath) {
-            player = MediaPlayer.create(this, Uri.fromFile(new File(path)));
+            Uri uri;
+            uri = Uri.parse(path);
+            player = MediaPlayer.create(this, uri);
             player.setLooping(true);
         } else {
             player = MediaPlayer.create(this, Settings.System.DEFAULT_ALARM_ALERT_URI);

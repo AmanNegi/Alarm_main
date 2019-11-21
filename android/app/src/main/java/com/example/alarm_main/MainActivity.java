@@ -11,11 +11,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -28,7 +30,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import io.flutter.Log;
 import io.flutter.app.FlutterActivity;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugins.GeneratedPluginRegistrant;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -41,22 +45,101 @@ import static android.Manifest.permission_group.CAMERA;
 
 
 public class MainActivity extends FlutterActivity {
+
     private static final String CHANNEL = "aster.flutter.app/alarm/aster";
 
+    public static final String STREAM = "com.aster.eventchannelsample/stream1";
+    public static final String STREAM2 = "com.aster.eventPermitChannel/stream2";
 
+    boolean storagePermit = false;
+    boolean notificationPermit = false;
     String message, timeString;
-    Integer hour, minute, uniqueId,repeating;
-    String path;
-    Boolean customPath;
+    Integer hour, minute, uniqueId, repeating;
+    String path = "";
+    Boolean customPath = false;
+    Handler handler = new Handler();
+    Functions functions;
 
+    @Override
+    protected void onStart() {
+        FlutterMain.startInitialization(getApplicationContext());
+        FlutterMain.ensureInitializationComplete(getApplicationContext(), null);
+        super.onStart();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        functions = new Functions(getApplicationContext());
         GeneratedPluginRegistrant.registerWith(this);
 
+        //Event channel 1
+        new EventChannel(getFlutterView(), STREAM).setStreamHandler(
+                new EventChannel.StreamHandler() {
+                    @Override
+                    public void onListen(Object args, EventChannel.EventSink events) {
 
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.w("randomTag", "adding listener");
+                                HashMap<String, String> map = new HashMap<>();
+                                map.put("customPath", customPath.toString());
+                                map.put("path", path);
+                                events.success(map);
+                                //your code
+                                handler.postDelayed(this, 1000);
+                            }
+                        }, 1000);
+
+                    }
+
+                    @Override
+                    public void onCancel(Object args) {
+                        handler.removeCallbacksAndMessages(null);
+                        System.out.println("dismissed the receiver");
+                    }
+                }
+        );
+
+        //Event channel 1
+        new EventChannel(getFlutterView(), STREAM2).setStreamHandler(
+                new EventChannel.StreamHandler() {
+                    @Override
+                    public void onListen(Object args, EventChannel.EventSink events) {
+
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    if (mNotificationManager.isNotificationPolicyAccessGranted()) {
+                                        notificationPermit = true;
+                                    }
+                                }
+                                Log.w(" EventChannel2", "adding listener");
+                                HashMap<String, Boolean> map = new HashMap<>();
+                                map.put("storagePermit", storagePermit);
+                                map.put("notificationPermit", notificationPermit);
+                                events.success(map);
+                                //your code
+                                handler.postDelayed(this, 1000);
+                            }
+                        }, 1000);
+
+                    }
+
+                    @Override
+                    public void onCancel(Object args) {
+                        handler.removeCallbacksAndMessages(null);
+                        System.out.println("dismissed the receiver");
+                    }
+                }
+        );
+
+
+        //method Channel
         new MethodChannel(getFlutterView(), CHANNEL).setMethodCallHandler(
                 new MethodCallHandler() {
                     @Override
@@ -64,35 +147,24 @@ public class MainActivity extends FlutterActivity {
                         switch (call.method) {
                             case "deleteAlarm": {
                                 System.out.println(" in delete Alarm [MainActivity.java]");
-                                Functions functions = new Functions(message, getApplicationContext(), timeString);
                                 Integer _uniqueIdl = call.argument("uniqueId");
                                 functions.cancelAlarm(_uniqueIdl);
                                 break;
                             }
                             case "setOneShot": {
-                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1236);
-                                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    if (mNotificationManager.isNotificationPolicyAccessGranted()) {
-
-                                    } else {
-                                        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
-                                        startActivity(intent);
-
-                                    }
-                                }
                                 uniqueId = call.argument("uniqueId");
                                 hour = call.argument("hour");
                                 message = call.argument("message");
                                 minute = call.argument("minute");
                                 timeString = call.argument("timeString");
-                                Functions functions = new Functions(message, getApplicationContext(), timeString);
-                                functions.setAlarm(hour, minute, uniqueId,false,"");
+                                functions.setAlarm(hour, minute, uniqueId, false, "", timeString, message);
                                 System.out.println(" the values in [mainActivity.java] " + (hour) + " " + (minute));
-                                // result.success(true);
                                 break;
                             }
                             case "getMusicPicker": {
+                                if (path != null && path.length() > 0) {
+                                    result.success(true);
+                                }
                                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                                 Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath() + File.separator);
                                 intent.setDataAndType(uri, "audio/*");
@@ -100,8 +172,8 @@ public class MainActivity extends FlutterActivity {
                                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
                                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                                 startActivityForResult(intent, 280);
-                                System.out.println(uri.getPath());
-                                result.success(path);
+                                result.success(false);
+                                break;
                             }
                             case "updateAlarm": {
                                 System.out.println(" in update Alarm [MainActivity.java]");
@@ -109,44 +181,93 @@ public class MainActivity extends FlutterActivity {
                                 timeString = call.argument("timeString");
                                 uniqueId = call.argument("uniqueId");
                                 hour = call.argument("hour");
-                                customPath =call.argument("customPath");
-                                if (customPath = true) {
-                                    path = call.argument("path");
+                                Integer receivedCustomPath = call.argument("customPath");
+                                Boolean path01;
+                                if (receivedCustomPath == null) {
+                                    path01 = false;
+                                } else {
+                                    path01 = receivedCustomPath == 1;
+
                                 }
+
+                                String receivedPath = call.argument("path");
                                 message = call.argument("message");
                                 minute = call.argument("minute");
-                                Functions functions = new Functions(message, getApplicationContext(), timeString);
+                                System.out.println(receivedPath);
+                                System.out.println(path01);
+
                                 // functions.cancelAlarm(uniqueId);
-                                if (repeating == 1) {
-                                    functions.setRepeatingAlarm(hour, minute, uniqueId,customPath,path);
-                                } else {
-                                    functions.setAlarm(hour, minute, uniqueId,customPath,path);
+                                if (repeating == null) {
+                                    repeating = 0;
                                 }
-
+                                if (repeating == 1) {
+                                    functions.setRepeatingAlarm(hour, minute, uniqueId, path01, receivedPath, timeString, message);
+                                } else {
+                                    functions.setAlarm(hour, minute, uniqueId, path01, receivedPath, timeString, message);
+                                }
+                                break;
                             }
-
-
+                            case "rescheduleAlarms": {
+                                functions.getDatabaseAndRescheduleAlarms();
+                            }
+                            case "showToast": {
+                                String text = call.argument("string");
+                                Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+                            case "requestAllPermit": {
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1236);
+                                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    if (!mNotificationManager.isNotificationPolicyAccessGranted()) {
+                                        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                                        startActivity(intent);
+                                    } else {
+                                        notificationPermit = true;
+                                    }
+                                }
+                                break;
+                            }
                         }
 
                     }
-                });
 
+                });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 1236) {
+            for (int i = 0; i < permissions.length; i++) {
+                //   String permission = permissions[i];
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        Toast.makeText(this, "Kindly grant the permission", Toast.LENGTH_SHORT).show();
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1236);
+
+                    }
+                } else {
+                    storagePermit = true;
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         System.out.println("in ONActivityResult");
-
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case 280:
+        if (resultCode != RESULT_CANCELED) {
+            if (requestCode == 280) {
                 if (resultCode == Activity.RESULT_OK) {
+                    Toast.makeText(this, "The file you selected may take a while to reflect", Toast.LENGTH_SHORT).show();
                     Uri uri = data.getData();
-                    String a = PathUtils.getPath(getApplicationContext(), uri);
-                    path = a;
+                    path = PathUtils.getPath(getApplicationContext(), uri);
+                    customPath = path != null;
                 }
-                break;
+            }
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
 

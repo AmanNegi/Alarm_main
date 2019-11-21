@@ -5,6 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 
 public class wakeFulReceiver extends BroadcastReceiver {
+    String path = "";
+    String timeString = "";
+    String message = "";
+    Boolean customPath = false;
 
     @Override
     public void onReceive(final Context context, Intent intent) {
@@ -14,15 +18,16 @@ public class wakeFulReceiver extends BroadcastReceiver {
         i.setClassName("com.example.alarm_main", "com.example.alarm_main.AlarmPage");
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        String timeString = intent.getStringExtra("timeString");
-        String message = intent.getStringExtra("message");
-        boolean customPath = intent.getBooleanExtra("customPath", false);
+         timeString = intent.getStringExtra("timeString");
+         message = intent.getStringExtra("message");
+         customPath = intent.getBooleanExtra("customPath", false);
+
         if (customPath) {
-            String path = intent.getStringExtra("path");
+            path = intent.getStringExtra("path");
             i.putExtra("path", path);
+            System.out.println("In Receiver  the values " + path + customPath);
         }
 
-        i.putExtra("customPath",customPath);
         i.putExtra("message", message);
         i.putExtra("timeString", timeString);
 
@@ -42,8 +47,9 @@ public class wakeFulReceiver extends BroadcastReceiver {
             public void run() {
                 //  context.startService(new Intent(context, MusicService.class));
                 Intent musicServiceIntent = new Intent(context, MusicService.class);
-                musicServiceIntent.putExtra("customPath", false);
-                context.startService(new Intent(context, MusicService.class));
+                musicServiceIntent.putExtra("customPath", customPath);
+                musicServiceIntent.putExtra("path", path);
+                context.startService(musicServiceIntent);
             }
         };
         threadTwo.start();

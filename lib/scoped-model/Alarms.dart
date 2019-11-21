@@ -52,10 +52,11 @@ class AlarmModel extends Model {
         'minute': alarm.minute,
         "timeString": alarm.timeString,
         "message": alarm.message,
-        "repeating": 0,
       });
 
       Alarm alarmWithID = Alarm.withId(
+          customPath: alarm.customPath,
+          path: alarm.path,
           repeating: alarm.repeating,
           id: id,
           hour: alarm.hour,
@@ -69,10 +70,12 @@ class AlarmModel extends Model {
     //adding files to SQFLITE database
   }
 
-  Future<int> updateProduct(Alarm alarm, int index) async {
+  Future<int> updateAlarm(Alarm alarm, int index) async {
     _alarms[index] = alarm;
     //updating files in SQFLITE database
     platform.invokeMethod("updateAlarm", {
+      "customPath": alarm.customPath,
+      "path": alarm.path,
       'uniqueId': alarm.id,
       'repeating': alarm.repeating,
       'hour': alarm.hour,

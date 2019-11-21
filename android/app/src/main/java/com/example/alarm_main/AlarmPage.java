@@ -3,10 +3,12 @@ package com.example.alarm_main;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,21 +18,27 @@ import android.widget.Toast;
 
 
 public class AlarmPage extends Activity {
-
-    static boolean isRunning = false;
     Button dismissButton;
     TextView wakeUpTextView, debugTextView, messageTextView;
     AudioManager audioManager;
 
     @Override
     protected void onStart() {
-        isRunning = true;
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.FULL_WAKE_LOCK, "myApp:alarmApp");
+
+        KeyguardManager km = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock
+                kl = km.newKeyguardLock("myApp:alarmApp");
+        kl.disableKeyguard();
+        wl.acquire(20000);
+
+
         super.onStart();
     }
 
     @Override
     protected void onDestroy() {
-        isRunning = false;
         super.onDestroy();
     }
 
@@ -54,12 +62,6 @@ public class AlarmPage extends Activity {
 
         debugTextView.setText(timeString);
         messageTextView.setText(message);
-
-        //setting fonts
-        // Typeface lightFont = Typeface.createFromAsset(this.getAssets(), "fonts/Raleway-Light.ttf");
-        // Typeface boldFont = Typeface.createFromAsset(this.getAssets(), "fonts/Raleway-Bold.ttf");
-        //  wakeUpTextView.setTypeface(lightFont);
-        //dismissButton.setTypeface(boldFont);
 
         dismissButton.setOnClickListener(new View.OnClickListener() {
             @Override

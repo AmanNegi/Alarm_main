@@ -14,8 +14,8 @@ class DbHelper {
   String colHour = "hour";
   String colMinute = "minute";
   String colMessage = "message";
-  String colCustomMusic = "customMusic";
-  String colMusicPath = "musicPath";
+  String colCustomPath = "customPath";
+  String colPath = "path";
   String colTimeString = "timeString";
   String colRepeating = "repeating";
 
@@ -39,7 +39,7 @@ class DbHelper {
   void createDb(Database db, int newVersion) async {
     print('creating db');
     await db.execute(
-        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colRepeating INTEGER, $colCustomMusic INTEGER, $colMusicPath TEXT)');
+        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colRepeating INTEGER, $colCustomPath INTEGER, $colPath TEXT)');
   }
 
   // ! adding alarm here...

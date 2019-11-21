@@ -110,12 +110,12 @@ packages:
     source: hosted
     version: "1.0.1"
   shared_preferences:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shared_preferences
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.3+4"
+    version: "0.5.4+5"
   sky_engine:
     dependency: transitive
     description: flutter

@@ -1,3 +1,4 @@
+import 'package:alarm_main/permit.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
@@ -5,6 +6,9 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:alarm_main/scoped-model/Alarms.dart';
 
+import 'globals.dart' as globals;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'permit.dart';
 import 'AlarmView.dart';
 
 void main() => runApp(MyApp());
@@ -20,12 +24,8 @@ class _MyAppState extends State<MyApp> {
   );
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    globals.getValuesFromSharedPrefs();
     SystemChrome.setSystemUIOverlayStyle(mySystemTheme);
     return ScopedModel<AlarmModel>(
       model: AlarmModel(),
@@ -40,15 +40,17 @@ class _MyAppState extends State<MyApp> {
           );
         },
         themedWidgetBuilder: (context, theme) {
+          print(globals.firstTime);
           return MaterialApp(
-            title: 'Flutter Demo',
-            theme: theme,
-            home: Container(
-              child: Scaffold(
-                body: AlarmView(),
-              ),
-            ),
-          );
+              title: 'Flutter Demo',
+              theme: theme,
+              home: globals.firstTime
+                  ? Permit()
+                  : Container(
+                      child: Scaffold(
+                        body: AlarmView(),
+                      ),
+                    ));
         },
       ),
     );

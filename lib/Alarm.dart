@@ -2,10 +2,10 @@ import "package:flutter/foundation.dart";
 
 class Alarm {
   int id;
-  int customPath;
+  int customPath = 0;
   int hour;
   String path;
-  int repeating;
+  int repeating = 0;
   int minute;
   String message = "Random predefined Text";
   String timeString;
@@ -39,9 +39,9 @@ class Alarm {
     this.hour = map['hour'];
     this.minute = map['minute'];
     this.message = map['message'];
-    this.customPath = map['customMusic'];
+    this.customPath = map['customPath'];
     this.timeString = map['timeString'];
-    this.path = map['musicPath'];
+    this.path = map['path'];
     this.repeating = map['repeating'];
   }
 
@@ -53,8 +53,8 @@ class Alarm {
     map['hour'] = hour;
     map['minute'] = minute;
     map['message'] = message;
-    map['musicPath'] = path;
-    map['customMusic'] = customPath;
+    map['path'] = path;
+    map['customPath'] = customPath;
     map['timeString'] = timeString;
     map['repeating'] = repeating;
     return map;

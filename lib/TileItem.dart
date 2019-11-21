@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -22,9 +24,13 @@ class _TileItemState extends State<TileItem> {
   final _formKey = GlobalKey<FormState>();
   String messageText;
   bool repeating;
-  bool customPath;
-  String path = "Select a file to see Text here";
+  bool customPath = false;
+  StreamSubscription _timerSubscription;
+
+  String path = "";
   final MethodChannel platform = MethodChannel("aster.flutter.app/alarm/aster");
+  static const stream =
+      const EventChannel('com.aster.eventchannelsample/stream1');
 
   void updateAlarm(Alarm alarm, Function update) async {
     print("index in alarm Update : ${widget.index}");
@@ -41,9 +47,42 @@ class _TileItemState extends State<TileItem> {
     myFocusNode = FocusNode();
   }
 
+  void initiateStream() {
+    if (_timerSubscription == null) {
+      _timerSubscription =
+          stream.receiveBroadcastStream().listen(receiveFromStream);
+    }
+  }
+
+  void cancelStream() {
+    if (_timerSubscription != null) {
+      _timerSubscription.cancel();
+    }
+  }
+
+  void receiveFromStream(dynamic value) {
+    print(value);
+    Map<String, dynamic> a = value.cast<String, dynamic>();
+    var _list = a.values.toList();
+    var receivedCustomPath = (_list[0]);
+    String receivedPath = (_list[1]);
+    bool customPathVar = false;
+    setState(() {
+      path = receivedPath;
+      if (receivedCustomPath == "true" || receivedCustomPath == true) {
+        customPathVar = true;
+      } else {
+        customPathVar = false;
+      }
+      customPath = customPathVar;
+    });
+  }
+
   @override
   void dispose() {
     // Clean up the focus node when the Form is disposed.
+    //  _timerSubscription.cancel();
+    cancelStream();
     myFocusNode.dispose();
     super.dispose();
   }
@@ -133,21 +172,22 @@ class _TileItemState extends State<TileItem> {
                       Container(
                         child: ListTile(
                           leading: Text("Select custom music"),
-                            subtitle: Text(path),
+                          subtitle:
+                              Text(path != null ? path : "String variable"),
                           trailing: IconButton(
                             icon: Icon(Icons.radio),
                             onPressed: () async {
-                              String path =
-                                  await platform.invokeMethod("getMusicPicker");
-                              print(path + 'in Flutter ');
-                              if (!(path.length <= 0)) {
-                                setState(() {
-                                  customPath = true;
-                                  this.path = path;
-                                });
-                              }
+                              await platform.invokeMethod("getMusicPicker");
+                              initiateStream();
                             },
                           ),
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          onPressed: () async {
+                            await platform.invokeMethod("rescheduleAlarms");
+                          },
                         ),
                       ),
                       SizedBox(
@@ -159,7 +199,8 @@ class _TileItemState extends State<TileItem> {
                           if (_formKey.currentState.validate()) {
                             _formKey.currentState.save();
                             Alarm alarm = Alarm.withId(
-                              customPath: 0,
+                              customPath: customPath ? 1 : 0,
+                              path: path,
                               repeating: repeating ? 1 : 0,
                               message: messageText,
                               id: widget.alarm.id,
@@ -168,7 +209,7 @@ class _TileItemState extends State<TileItem> {
                               timeString: widget.alarm.timeString,
                             );
 
-                            updateAlarm(alarm, model.updateProduct);
+                            updateAlarm(alarm, model.updateAlarm);
                             Navigator.pop(context);
                           }
                         },
