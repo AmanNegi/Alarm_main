@@ -9,19 +9,15 @@ import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.dart.DartExecutor;
 import io.flutter.view.FlutterMain;
 
+import static android.webkit.ConsoleMessage.MessageLevel.LOG;
+
 public class RestartReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
         //called when the device restarts to reschedule the alarms
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-          //  FlutterMain.startInitialization(context);
-          //  FlutterMain.ensureInitializationComplete(context, null);
-
-            //FlutterEngine a = new FlutterEngine(context);
-           // Intent flutterIntent = FlutterActivity.withNewEngine().build(context);
-           //context.startActivity(flutterIntent);
-
+            System.out.println("in onReceive in alarm_main please help here");
             Functions functions = new Functions(context);
             functions.getDatabaseAndRescheduleAlarms();
         }

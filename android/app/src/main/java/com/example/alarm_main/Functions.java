@@ -96,7 +96,7 @@ class Functions {
 
                 print(String.valueOf(calendar.getTimeInMillis()));
                 if (mainRepeating) {
-                       setRepeatingAlarm(mainHour, mainMinute, mainUniqueID, mainCustomPath, mainPath, mainTimeString, mainMessage);
+                    setRepeatingAlarm(mainHour, mainMinute, mainUniqueID, mainCustomPath, mainPath, mainTimeString, mainMessage);
                     print("Repeating " + mainTimeString);
                 } else {
                     setAlarm(mainHour, mainMinute, mainUniqueID, mainCustomPath, mainPath, mainTimeString, mainMessage);
@@ -124,6 +124,12 @@ class Functions {
             Boolean customPath,
             String path, String timeString, String message) {
 
+        ComponentName receiver = new ComponentName(context, RestartReceiver.class);
+        PackageManager pm = context.getPackageManager();
+
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
         // Create an Intent for the alarm and set the desired Dart callback handle.
         Intent alarm = new Intent(context, wakeFulReceiver.class);
         alarm.putExtra("timeString", timeString);

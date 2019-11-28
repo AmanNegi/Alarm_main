@@ -42,15 +42,10 @@ class _MyAppState extends State<MyApp> {
         themedWidgetBuilder: (context, theme) {
           print(globals.firstTime);
           return MaterialApp(
-              title: 'Flutter Demo',
-              theme: theme,
-              home: globals.firstTime
-                  ? Permit()
-                  : Container(
-                      child: Scaffold(
-                        body: AlarmView(),
-                      ),
-                    ));
+            title: 'Flutter Demo',
+            theme: theme,
+            home: globals.firstTime ? Permit() : AlarmView(),
+          );
         },
       ),
     );

@@ -21,6 +21,7 @@ class _PermitState extends State<Permit> {
 
   final MethodChannel platform = MethodChannel("aster.flutter.app/alarm/aster");
   String buttonText = "Proceed";
+  String instructions = "";
   static const stream =
       const EventChannel('com.aster.eventPermitChannel/stream2');
   StreamSubscription _timerSubscription;
@@ -49,6 +50,7 @@ class _PermitState extends State<Permit> {
       if (receivedNotificationPermit == true && receivedStoragePermit == true) {
         setState(() {
           buttonText = "Proceed";
+          instructions = "";
         });
 
         cancelStream();
@@ -64,17 +66,14 @@ class _PermitState extends State<Permit> {
           receivedNotificationPermit == false) {
         setState(() {
           buttonText = "Grant Permission";
+          instructions = "Grant all permissions to continue";
         });
-
-        platform.invokeMethod("showToast",
-            {"string": "Kindly grant both permissions to continue"});
       } else if (receivedStoragePermit == false &&
           receivedNotificationPermit == true) {
         setState(() {
           buttonText = "Grant Permission";
+          instructions = "Grant all permissions to continue";
         });
-        platform.invokeMethod("showToast",
-            {"string": "Kindly grant both permissions to continue"});
       }
     });
   }
@@ -119,7 +118,11 @@ class _PermitState extends State<Permit> {
                     platform.invokeMethod("requestAllPermit");
                     initiateStream();
                   },
-                )
+                ),
+                SizedBox(
+                  height: 20.0,
+                ),
+                Text(instructions),
               ],
             ),
           ),

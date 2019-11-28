@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:icon="@mipmap/alarm_img"
@@ -41,6 +42,7 @@
             </intent-filter>
 
         </activity>
+
         <activity
             android:name=".AlarmPage"
             android:excludeFromRecents="true"
@@ -59,9 +61,12 @@
             android:name="com.example.alarm_main.RestartReceiver"
             android:enabled="false"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
+            <intent-filter android:priority="999">
+                <category android:name="com.example.autostart.CATEGORY_AUTOSTART"/>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
     </application>
