@@ -91,131 +91,129 @@ class _TileItemState extends State<TileItem> {
     return ScopedModelDescendant<AlarmModel>(
       builder: (cntxt, wgt, model) {
         return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            shape: StadiumBorder(),
+            backgroundColor: widget.color,
+            centerTitle: true,
+            titleSpacing: 10.0,
+            title: Text(
+              widget.alarm.message,
+              style: TextStyle(fontSize: 25.0),
+            ),
+            automaticallyImplyLeading: false,
+          ),
           body: GestureDetector(
             onTap: () {
               FocusScope.of(context).requestFocus(FocusNode());
             },
-            child: CustomScrollView(
-              slivers: <Widget>[
-                SliverAppBar(
-                  floating: true,
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  shape: StadiumBorder(),
-                  backgroundColor: widget.color,
-                  centerTitle: true,
-                  titleSpacing: 10.0,
-                  title: Text(
-                    widget.alarm.message,
-                    style: TextStyle(fontSize: 25.0),
-                  ),
-                  automaticallyImplyLeading: false,
-                  expandedHeight: 60.0,
-                  pinned: true,
+            child: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 40.0,
                 ),
-                SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      SizedBox(
-                        height: 40.0,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: EnsureVisibleWhenFocused(
-                          focusNode: myFocusNode,
-                          child: Material(
-                            child: Form(
-                              key: _formKey,
-                              child: TextFormField(
-                                validator: (value) {
-                                  if (value.length > 15) {
-                                    return 'Enter a small message for the alarm...';
-                                  }
-                                  return null;
-                                },
-                                autocorrect: false,
-                                onSaved: ((value) {
-                                  setState(() {
-                                    this.messageText = value;
-                                  });
-                                }),
-                                initialValue: messageText,
-                                decoration: InputDecoration(
-                                  prefixIcon: Icon(Icons.message),
-                                  border: OutlineInputBorder(
-                                      gapPadding: 10.0,
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      borderSide: BorderSide()),
-                                ),
-                                focusNode: myFocusNode,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ), //filterChip
-
-                      Container(
-                        child: ListTile(
-                          leading: Text("Repeating"),
-                          trailing: Checkbox(
-                            value: repeating,
-                            onChanged: (value) {
-                              repeating = value;
-                            },
-                          ),
-                        ),
-                      ),
-                      Container(
-                        child: ListTile(
-                          leading: Text("Select custom music"),
-                          subtitle:
-                              Text(path != null ? path : "String variable"),
-                          trailing: IconButton(
-                            icon: Icon(Icons.radio),
-                            onPressed: () async {
-                              await platform.invokeMethod("getMusicPicker");
-                              initiateStream();
-                            },
-                          ),
-                        ),
-                      ),
-                      Container(
-                        child: RaisedButton(
-                          onPressed: () async {
-                            await platform.invokeMethod("rescheduleAlarms");
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: EnsureVisibleWhenFocused(
+                    focusNode: myFocusNode,
+                    child: Material(
+                      child: Form(
+                        key: _formKey,
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value.length > 15) {
+                              return 'Enter a small message for the alarm...';
+                            }
+                            return null;
                           },
+                          autocorrect: false,
+                          onSaved: ((value) {
+                            setState(() {
+                              this.messageText = value;
+                            });
+                          }),
+                          initialValue: messageText,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.message),
+                            border: OutlineInputBorder(
+                                gapPadding: 10.0,
+                                borderRadius:
+                                BorderRadius.circular(10.0),
+                                borderSide: BorderSide()),
+                          ),
+                          focusNode: myFocusNode,
                         ),
                       ),
-                      SizedBox(
-                        height: 20.0,
-                      ),
-                      RaisedButton(
-                        child: Text("Update alarm"),
-                        onPressed: () {
-                          if (_formKey.currentState.validate()) {
-                            _formKey.currentState.save();
-                            Alarm alarm = Alarm.withId(
-                              customPath: customPath ? 1 : 0,
-                              path: path,
-                              repeating: repeating ? 1 : 0,
-                              message: messageText,
-                              id: widget.alarm.id,
-                              hour: widget.alarm.hour,
-                              minute: widget.alarm.minute,
-                              timeString: widget.alarm.timeString,
-                            );
+                    ),
+                  ),
+                ), //filterChip
 
-                            updateAlarm(alarm, model.updateAlarm);
-                            Navigator.pop(context);
-                          }
-                        },
+                Container(
+                  child: ListTile(
+                    leading: Text("Repeating"),
+                    trailing: Checkbox(
+                      value: repeating,
+                      onChanged: (value) {
+                        repeating = value;
+                      },
+                    ),
+                  ),
+                ),
+                Container(
+                  child: ListTile(
+                    leading: Text("Select custom music"),
+                    subtitle:
+                    Text(path != null ? path : "String variable"),
+                    trailing: IconButton(
+                      icon: Icon(Icons.radio),
+                      onPressed: () async {
+                        await platform.invokeMethod("getMusicPicker");
+                        initiateStream();
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: <Widget>[
+                      Card(
+                        child: Text("ranom"),
                       ),
+                      Card(
+                        child: Text("randin"),
+                      )
                     ],
                   ),
+                ),
+                SizedBox(
+                  height: 20.0,
+                ),
+                RaisedButton(
+                  child: Text("Update alarm"),
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      _formKey.currentState.save();
+                      Alarm alarm = Alarm.withId(
+                        customPath: customPath ? 1 : 0,
+                        path: path,
+                        repeating: repeating ? 1 : 0,
+                        message: messageText,
+                        id: widget.alarm.id,
+                        hour: widget.alarm.hour,
+                        minute: widget.alarm.minute,
+                        timeString: widget.alarm.timeString,
+                      );
+
+                      updateAlarm(alarm, model.updateAlarm);
+                      Navigator.pop(context);
+                    }
+                  },
                 ),
               ],
             ),

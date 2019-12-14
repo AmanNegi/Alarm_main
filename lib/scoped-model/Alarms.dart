@@ -64,6 +64,7 @@ class AlarmModel extends Model {
           message: alarm.message,
           timeString: alarm.timeString);
       _alarms.add(alarmWithID);
+      print("length of list " + _alarms.length.toString());
       notifyListeners();
     });
 
@@ -89,15 +90,36 @@ class AlarmModel extends Model {
     return success;
   }
 
-  Future<void> deleteProduct(int id, int index) async {
+  Alarm getAlarmFromID(int id) {
+    Alarm alarm;
+    refreshData().then((value) {
+      if (_alarms != null) {
+        print(" length of alarm array " + _alarms.length.toString());
+        for (int i = 0; i < _alarms.length; i++) {
+          if (id == _alarms[i].id) {
+            alarm = _alarms[i];
+          }
+        }
+      }
+    });
+    return alarm;
+  }
+
+  Future<void> deleteProduct(int id, {int index}) async {
     print("id received in deleteProduct $id");
-    //removing from sqlite
+    int currentIndex;
+    if (index == null) {
+      currentIndex = _alarms.indexOf(getAlarmFromID(id));
+    } else {
+      currentIndex = index;
+    }
+    print("the id created " + currentIndex.toString());
     dbHelper.initalizeDb().then((value) async {
       int success = await dbHelper.deleteAlarm(id);
       print("success $success delete method");
       platform.invokeMethod("deleteAlarm", {'uniqueId': id});
     });
-    _alarms.removeAt(index);
+    _alarms.removeAt(currentIndex);
     notifyListeners();
   }
 }

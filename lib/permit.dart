@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:async/async.dart';
 import 'package:flutter/services.dart';
-import 'globals.dart' as globals;
+import 'HelperMethods/globals.dart' as globals;
 import 'package:alarm_main/AlarmView.dart';
 
 class Permit extends StatefulWidget {
@@ -15,7 +15,6 @@ class Permit extends StatefulWidget {
 class _PermitState extends State<Permit> {
   @override
   void dispose() {
-    _timerSubscription.cancel();
     super.dispose();
   }
 
@@ -55,12 +54,10 @@ class _PermitState extends State<Permit> {
 
         cancelStream();
         globals.firstTime = false;
-        globals.saveToSharedPrefs();
+        globals.saveToSharedPrefs(false);
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) {
-          return Container(
-            child: AlarmView(),
-          );
+          return AlarmView();
         }));
       } else if (receivedStoragePermit == true &&
           receivedNotificationPermit == false) {

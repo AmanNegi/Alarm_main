@@ -5,7 +5,7 @@ import 'package:scoped_model/scoped_model.dart';
 import 'scoped-model/Alarms.dart';
 
 import 'Alarm.dart';
-import 'DropDown.dart';
+import 'widgets/DropDown.dart';
 import 'widgets/ShadesView.dart';
 
 class AlarmView extends StatefulWidget {

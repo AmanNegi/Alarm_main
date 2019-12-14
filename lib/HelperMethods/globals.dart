@@ -4,9 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 bool firstTime = true;
 
-void saveToSharedPrefs() async {
+void saveToSharedPrefs(bool value) async {
   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-  sharedPreferences.setBool("firstTime", firstTime);
+  sharedPreferences.setBool("firstTime", value);
+  firstTime = false;
 }
 
 void getValuesFromSharedPrefs() async {

@@ -44,7 +44,7 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
           ),
           onDismissed: ((direction) {
             if (direction == DismissDirection.startToEnd) {
-              model.deleteProduct(alarmNew.id, index);
+              model.deleteProduct(alarmNew.id, index: index);
               Scaffold.of(context).showSnackBar(SnackBar(
                 duration: Duration(seconds: 3),
                 elevation: 50.0,
@@ -65,13 +65,23 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
               ));
             }
           }),
-          child: ListTile(
-            dense: false,
-            leading: Icon(Icons.alarm),
-            contentPadding: EdgeInsets.all(20.0),
-            title: Text(
-              alarmNew.timeString,
-              style: TextStyle(fontSize: 30.0),
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Row(
+                children: <Widget>[
+                  Icon(Icons.alarm),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Text(
+                    alarmNew.timeString,
+                    style: TextStyle(
+                        fontSize: 30.0,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
             ),
           ),
         );

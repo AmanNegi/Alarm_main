@@ -13,7 +13,6 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
 
-import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,7 +21,6 @@ public class MusicService extends Service {
     String path;
     MediaPlayer player;
     Vibrator vibrator;
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -40,21 +38,6 @@ public class MusicService extends Service {
 
     }
 
-    public void increaseVolumeWithTime(int maxVol) {
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
-            int Vol = 5;
-
-            @Override
-            public void run() {
-                turnAudioON(Vol);
-                if (!(Vol >= maxVol - 2)) {
-                    Vol++;
-                }
-            }
-        }, 0, 10000);
-
-    }
 
     void doWork() {
         checkWriteExternalPermission();
@@ -74,21 +57,22 @@ public class MusicService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             long[] pattern = new long[8];
             pattern[0] = 500;
-            pattern[1] = 950;
-            pattern[2] = 50;
-            pattern[3] = 500;
-            pattern[4] = 50;
-            pattern[5] = 500;
-            pattern[6] = 50;
-            pattern[7] = 500;
+            pattern[1] = 50;
+            pattern[2] = 500;
+            pattern[3] = 50;
+            pattern[4] = 500;
+            pattern[5] = 50;
+            pattern[6] = 500;
+            pattern[7] = 50;
             vibrator.vibrate(VibrationEffect.createWaveform(pattern, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {
             //deprecated in API 26
             vibrator.vibrate(10000);
         }
-        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int maxVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        increaseVolumeWithTime(maxVol);
+
+        AudioClass audioClass = new AudioClass();
+        audioClass.initiateAudioManager(this);
+        audioClass.increaseVolumeWithTime();
         player.start();
     }
 
@@ -101,13 +85,6 @@ public class MusicService extends Service {
         doWork();
 
         return START_NOT_STICKY;
-    }
-
-    void turnAudioON(int Volume) {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        //TODO change the index to change the volume level with passing time
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Volume, 0);
     }
 
     @Override

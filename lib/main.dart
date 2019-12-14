@@ -6,12 +6,14 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:alarm_main/scoped-model/Alarms.dart';
 
-import 'globals.dart' as globals;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'HelperMethods/globals.dart' as globals;
 import 'permit.dart';
 import 'AlarmView.dart';
+import 'MathsCorner.dart';
 
 void main() => runApp(MyApp());
+
+void startMathsCorner() => runApp(MathsCorner());
 
 class MyApp extends StatefulWidget {
   @override
@@ -21,7 +23,13 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   SystemUiOverlayStyle mySystemTheme = SystemUiOverlayStyle.dark.copyWith(
     systemNavigationBarColor: Colors.black,
+
   );
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

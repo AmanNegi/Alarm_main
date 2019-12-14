@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
        <!-- Show a splash screen on the activity. Automatically removed when
              Flutter draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NoActionBar" parent="@android:style/Theme.Holo.Light">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:hardwareAccelerated">true</item>
+        <item name="android:immersive">true</item>
+        <item name="android:turnScreenOn" tools:targetApi="o_mr1">true</item>
+        <item name="android:priority">99</item>
+        <item name="android:excludeFromRecents">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
     </style>
 </resources>

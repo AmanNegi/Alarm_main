@@ -13,7 +13,7 @@ class Alarm {
 // **Named Constructor
 
   Alarm.withId({
-    this.id,
+    @required this.id,
     @required this.hour,
     @required this.customPath,
     @required this.repeating,

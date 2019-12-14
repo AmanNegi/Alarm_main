@@ -64,6 +64,8 @@ class _ShadesViewState extends State<ShadesView> {
             itemCount: model.alarms.length,
             itemBuilder: (BuildContext context, int index) {
               return Container(
+                height: 100.0,
+                width: MediaQuery.of(context).size.width,
                 color: colorList[index],
                 child: Material(
                   color: Colors.transparent,
@@ -82,13 +84,9 @@ class _ShadesViewState extends State<ShadesView> {
                               },
                               fullscreenDialog: true));
                     },
-                    child: Container(
-                      width: 500,
-                      height: 100,
-                      child: SimpleListViewClass(
-                        alarm: model.alarms[index],
-                        index: index,
-                      ),
+                    child: SimpleListViewClass(
+                      alarm: model.alarms[index],
+                      index: index,
                     ),
                   ),
                 ),

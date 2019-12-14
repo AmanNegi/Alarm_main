@@ -18,6 +18,16 @@ import java.util.Date;
 class Functions {
 
     private Context context;
+    String tableName = "table_name";
+
+    String colId = "id";
+    String colHour = "hour";
+    String colMinute = "minute";
+    String colMessage = "message";
+    String colTimeString = "timeString";
+    String colRepeating = "repeating";
+    String colCustomPath = "customPath";
+    String colPath = "path";
 
     Functions(Context context) {
 
@@ -30,22 +40,19 @@ class Functions {
 
     }
 
+    public SQLiteDatabase getDatabase() {
+        return SQLiteDatabase.openDatabase("/data/user/0/com.example.alarm_main/app_flutter/alarm.db", null, 0);
+    }
+
+    public boolean deleteAlarm(int uniqueId) {
+        SQLiteDatabase database = getDatabase();
+
+        return database.delete(tableName, colId + "=?", new String[]{String.valueOf(uniqueId)}) > 0;
+    }
+
     public void getDatabaseAndRescheduleAlarms() {
 
-        String tableName = "table_name";
-
-        String colId = "id";
-        String colHour = "hour";
-        String colMinute = "minute";
-        String colMessage = "message";
-        String colTimeString = "timeString";
-        String colRepeating = "repeating";
-        String colCustomPath = "customPath";
-        String colPath = "path";
-
-
-        SQLiteDatabase database = SQLiteDatabase.openDatabase("/data/user/0/com.example.alarm_main/app_flutter/alarm.db", null, 0);
-
+        SQLiteDatabase database = getDatabase();
         if (database != null) {
             ArrayList<String> message = new ArrayList<>();
             ArrayList<Integer> hour = new ArrayList<>();
@@ -75,8 +82,15 @@ class Functions {
                     } while (cursor.moveToNext());
                 }
             }
-
-
+            //cancelling all alarms before setting them again
+            for (int i = 0; i < id.size(); i++) {
+                cancelAlarm(i);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             for (int i = 0; i < hour.size(); i++) {
                 print(timeString.toString());
                 int mainHour = hour.get(i);
@@ -132,6 +146,10 @@ class Functions {
                 PackageManager.DONT_KILL_APP);
         // Create an Intent for the alarm and set the desired Dart callback handle.
         Intent alarm = new Intent(context, wakeFulReceiver.class);
+
+        System.out.println(" in Functions.java behind the uniqueId " + String.valueOf(requestCode));
+        alarm.putExtra("repeating",repeating);
+        alarm.putExtra("uniqueId", requestCode);
         alarm.putExtra("timeString", timeString);
         alarm.putExtra("message", message != null ? message : "It's time to wake up");
         alarm.putExtra("customPath", customPath);

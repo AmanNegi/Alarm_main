@@ -1,6 +1,5 @@
 package com.example.alarm_main;
 
-
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.KeyguardManager;
@@ -9,6 +8,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -47,9 +47,7 @@ public class AlarmPage extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.newactivity);
 
-
         System.out.println("In onCreate() [AlarmPage.java]");
-
 
         audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         dismissButton = findViewById(R.id.dismissButtonId);
@@ -57,8 +55,10 @@ public class AlarmPage extends Activity {
         debugTextView = findViewById(R.id.debugTextViewId);
         messageTextView = findViewById(R.id.messageTextView);
 
+        int uniqueId = getIntent().getIntExtra("uniqueId", 0);
         String message = getIntent().getStringExtra("message");
         String timeString = getIntent().getStringExtra("timeString");
+        Boolean repeating = getIntent().getBooleanExtra("repeating", false);
 
         debugTextView.setText(timeString);
         messageTextView.setText(message);
@@ -66,13 +66,17 @@ public class AlarmPage extends Activity {
         dismissButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                AudioClass audioClass = new AudioClass();
+                audioClass.initiateAudioManager(getApplicationContext());
+                audioClass.setLowVolume();
                 System.out.println("onClick in [AlarmPage.java]");
 
-                Intent musicService = new Intent(getApplicationContext(), MusicService.class);
-                stopService(musicService);
-
-                Intent myService = new Intent(getApplicationContext(), NotificationService.class);
-                stopService(myService);
+                System.out.println(" in AlarmPage.java behind the uniqueId " + (uniqueId));
+                Intent intent
+                        = new Intent(getApplicationContext(), MathsInterface.class);
+                intent.putExtra("uniqueId", uniqueId);
+                intent.putExtra("repeating",repeating);
+                startActivity(intent);
                 finish();
 
             }
