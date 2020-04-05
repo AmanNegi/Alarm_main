@@ -1,21 +1,14 @@
 package com.example.alarm_main;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,15 +16,11 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -45,10 +34,6 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.view.FlutterMain;
 
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission_group.CAMERA;
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-
 
 public class MainActivity extends FlutterActivity {
 
@@ -59,50 +44,35 @@ public class MainActivity extends FlutterActivity {
 
     boolean storagePermit = false;
     boolean notificationPermit = false;
+    boolean defaultMethod = true;
     String message, timeString;
-    Integer hour, minute, uniqueId, repeating;
+    Integer repeating = 0;
+    Integer hour, minute, uniqueId;
     String path = "";
     Boolean customPath = false;
     Handler handler = new Handler();
-    Functions functions;
+    DbHelper dbHelper;
 
     @Override
     protected void onStart() {
-        FlutterMain.startInitialization(getApplicationContext());
-        FlutterMain.ensureInitializationComplete(getApplicationContext(), null);
-
         super.onStart();
+        FlutterEngineClass.createFlutterEngine(this);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        functions = new Functions(getApplicationContext());
         GeneratedPluginRegistrant.registerWith(this);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        int val = 0;
-        if (!preferences.contains("count")) {
-            editor.putInt("count", val);
-            editor.apply();
-        } else {
-            val = preferences.getInt("count", 0);
-        }
-        if (val < 2) {
-            val++;
-            requestAutoStartupPermit();
-            editor.putInt("count", val);
-            editor.apply();
-        }
+        dbHelper = new DbHelper(getApplicationContext());
 
-        //Event channel 1
+        saveOpenedCountToSharedPrefs();
+
+        //Event channel 1 --| music stream
         new EventChannel(getFlutterView(), STREAM).setStreamHandler(
                 new EventChannel.StreamHandler() {
                     @Override
                     public void onListen(Object args, EventChannel.EventSink events) {
-
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -111,7 +81,6 @@ public class MainActivity extends FlutterActivity {
                                 map.put("customPath", customPath.toString());
                                 map.put("path", path);
                                 events.success(map);
-                                //your code
                                 handler.postDelayed(this, 1000);
                             }
                         }, 1000);
@@ -126,9 +95,10 @@ public class MainActivity extends FlutterActivity {
                 }
         );
 
-        //Event channel 1
+        //Event channel 1 --| Permission stream
         new EventChannel(getFlutterView(), STREAM2).setStreamHandler(
                 new EventChannel.StreamHandler() {
+
                     @Override
                     public void onListen(Object args, EventChannel.EventSink events) {
 
@@ -167,113 +137,126 @@ public class MainActivity extends FlutterActivity {
                 }
         );
 
-
-        //method Channel
-        new MethodChannel(getFlutterView(), CHANNEL).setMethodCallHandler(
-                new MethodCallHandler() {
-                    @Override
-                    public void onMethodCall(MethodCall call, Result result) {
-                        switch (call.method) {
-                            case "deleteAlarm": {
-                                System.out.println(" in delete Alarm [MainActivity.java]");
-                                Integer _uniqueIdl = call.argument("uniqueId");
-                                functions.cancelAlarm(_uniqueIdl);
-                                break;
-                            }
-                            case "setOneShot": {
-                                uniqueId = call.argument("uniqueId");
-                                hour = call.argument("hour");
-                                message = call.argument("message");
-                                minute = call.argument("minute");
-                                timeString = call.argument("timeString");
-                                functions.setAlarm(hour, minute, uniqueId, false, "", timeString, message);
-                                System.out.println(" the values in [mainActivity.java] " + (hour) + " " + (minute));
-                                break;
-                            }
-                            case "getMusicPicker": {
-                                if (path != null && path.length() > 0) {
-                                    result.success(true);
-                                }
-                                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                                Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath() + File.separator);
-                                intent.setDataAndType(uri, "audio/*");
-                                intent.setType("audio/*");
-                                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
-                                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                                startActivityForResult(intent, 280);
-                                result.success(false);
-                                break;
-                            }
-                            case "updateAlarm": {
-                                System.out.println(" in update Alarm [MainActivity.java]");
-                                repeating = call.argument("repeating");
-                                timeString = call.argument("timeString");
-                                uniqueId = call.argument("uniqueId");
-                                hour = call.argument("hour");
-                                Integer receivedCustomPath = call.argument("customPath");
-                                Boolean path01;
-                                if (receivedCustomPath == null) {
-                                    path01 = false;
-                                } else {
-                                    path01 = receivedCustomPath == 1;
-
-                                }
-
-                                String receivedPath = call.argument("path");
-                                message = call.argument("message");
-                                minute = call.argument("minute");
-                                System.out.println(receivedPath);
-                                System.out.println(path01);
-
-                                // functions.cancelAlarm(uniqueId);
-                                if (repeating == null) {
-                                    repeating = 0;
-                                }
-                                if (repeating == 1) {
-                                    functions.setRepeatingAlarm(hour, minute, uniqueId, path01, receivedPath, timeString, message);
-                                } else {
-                                    functions.setAlarm(hour, minute, uniqueId, path01, receivedPath, timeString, message);
-                                }
-                                break;
-                            }
-                            case "rescheduleAlarms": {
-                                functions.getDatabaseAndRescheduleAlarms();
-                                break;
-                            }
-                            case "showToast": {
-                                String text = call.argument("string");
-                                Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
-                                break;
-                            }
-                            case "requestAllPermit": {
-
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    String packageName = getApplicationContext().getPackageName();
-                                    PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-                                    if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                                        Intent intent1 = new Intent();
-                                        intent1.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                                        intent1.setData(Uri.parse("package:" + packageName));
-                                        startActivity(intent1);
+        //method Channel --| To get the calls from the flutter code
+        new MethodChannel(getFlutterView().getDartExecutor(), CHANNEL)
+                .setMethodCallHandler(
+                        new MethodCallHandler() {
+                            @Override
+                            public void onMethodCall(MethodCall call, Result result) {
+                                switch (call.method) {
+                                    case "deleteAlarm": {
+                                        System.out.println(" in delete Alarm [MainActivity.java]");
+                                        Integer _uniqueIdl = call.argument("uniqueId");
+                                        AlarmHelper.cancelAlarm(_uniqueIdl, getApplicationContext());
+                                        break;
                                     }
-                                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1236);
+                                    case "setOneShot": {
+                                        uniqueId = call.argument("uniqueId");
+                                        hour = call.argument("hour");
+                                        message = call.argument("message");
+                                        minute = call.argument("minute");
+                                        timeString = call.argument("timeString");
+                                        AlarmHelper alarmHelper = new AlarmHelper(getApplicationContext(), uniqueId, hour, minute, repeating, customPath, path, timeString, message, defaultMethod);
+                                        alarmHelper.setOneShot();
+                                        System.out.println(" the values in [mainActivity.java] " + (hour) + " " + (minute));
+                                        break;
+                                    }
+                                    case "getMusicPicker": {
+                                        if (path != null && path.length() > 0) {
+                                            result.success(true);
+                                        }
+                                        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                                        Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath() + File.separator);
+                                        intent.setDataAndType(uri, "audio/*");
+                                        intent.setType("audio/*");
+                                        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+                                        intent.addCategory(Intent.CATEGORY_OPENABLE);
+                                        startActivityForResult(intent, 280);
+                                        result.success(false);
+                                        break;
+                                    }
+                                    case "updateAlarm": {
+                                        System.out.println(" in update Alarm [MainActivity.java]");
+                                        repeating = call.argument("repeating");
+                                        timeString = call.argument("timeString");
+                                        uniqueId = call.argument("uniqueId");
+                                        hour = call.argument("hour");
+                                        defaultMethod = call.argument("defaultMethod");
+                                        path = call.argument("path");
+                                        message = call.argument("message");
+                                        minute = call.argument("minute");
+                                        int integerCustomPath = call.argument("customPath");
+                                        if (integerCustomPath == 0) {
+                                            customPath = false;
+                                        } else {
+                                            customPath = true;
+                                        }
+                                        AlarmHelper.cancelAlarm(uniqueId, getApplicationContext());
+                                        AlarmHelper alarmHelper = new AlarmHelper(getApplicationContext(), uniqueId, hour, minute, repeating, customPath, path, timeString, message, defaultMethod);
 
-                                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                                    if (!mNotificationManager.isNotificationPolicyAccessGranted()) {
-                                        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
-                                        startActivity(intent);
-                                    } else {
-                                        notificationPermit = true;
+                                        if (repeating == 1) {
+                                            alarmHelper.setRepeatingAlarm();
+                                        } else {
+                                            alarmHelper.setOneShot();
+                                        }
+                                        break;
+                                    }
+                                    case "rescheduleAlarms": {
+                                        dbHelper.rescheduleAlarms();
+                                        break;
+                                    }
+                                    case "showToast": {
+                                        String text = call.argument("string");
+                                        Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+                                        break;
+                                    }
+                                    case "requestAllPermit": {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                            String packageName = MainActivity.this.getApplicationContext().getPackageName();
+                                            PowerManager pm = (PowerManager) MainActivity.this.getApplicationContext().getSystemService(Context.POWER_SERVICE);
+                                            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                                                Intent intent1 = new Intent();
+                                                intent1.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                                                intent1.setData(Uri.parse("package:" + packageName));
+                                                MainActivity.this.startActivity(intent1);
+                                            }
+                                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1236);
+
+                                            NotificationManager mNotificationManager = (NotificationManager) MainActivity.this.getSystemService(Context.NOTIFICATION_SERVICE);
+                                            if (!mNotificationManager.isNotificationPolicyAccessGranted()) {
+                                                Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                                                MainActivity.this.startActivity(intent);
+                                            } else {
+                                                notificationPermit = true;
+                                            }
+
+                                        }
+                                        break;
                                     }
 
                                 }
-                                break;
+
                             }
                         }
+                );
+    }
 
-                    }
-
-                });
+    private void saveOpenedCountToSharedPrefs() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        int val = 0;
+        if (!preferences.contains("count")) {
+            editor.putInt("count", val);
+            editor.apply();
+        } else {
+            val = preferences.getInt("count", 0);
+        }
+        if (val == 0) {
+            val++;
+            requestAutoStartupPermit();
+            editor.putInt("count", val);
+            editor.apply();
+        }
     }
 
 

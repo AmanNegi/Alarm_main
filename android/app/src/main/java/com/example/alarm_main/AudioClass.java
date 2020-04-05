@@ -6,10 +6,10 @@ import android.media.AudioManager;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AudioClass {
-    //Helper class
-    AudioManager audioManager;
-    Timer t = new Timer();
+class AudioClass {
+    //To control Volume ...
+     private AudioManager audioManager;
+     private Timer t = new Timer();
 
     void initiateAudioManager(Context context) {
         if (audioManager == null) {
@@ -17,7 +17,7 @@ public class AudioClass {
         }
     }
 
-    void setVolume(int val) {
+    private void setVolume(int val) {
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, val, 0);
     }
 
@@ -26,7 +26,7 @@ public class AudioClass {
         setVolume(10);
     }
 
-    public void increaseVolumeWithTime() {
+    void increaseVolumeWithTime() {
         int maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         t.scheduleAtFixedRate(new TimerTask() {
             int Vol = 5;

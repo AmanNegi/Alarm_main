@@ -1,12 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.alarm_main">
 
-    <!-- io.flutter.app.FlutterApplication is an android.app.Application that
-         calls FlutterMain.startInitialization(this); in its onCreate method.
-         In most cases you can leave this as-is, but you if you want to provide
-         additional functionality it is fine to subclass or reimplement
-         FlutterApplication and put your custom class here. -->
+
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -30,10 +25,6 @@
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
-            <!-- This keeps the window background of the activity showing
-                 until Flutter renders its first frame. It can be removed if
-                 there is no splash screen (such as the default splash screen
-                 defined in @style/LaunchTheme). -->
             <meta-data
                 android:name="io.flutter.app.android.SplashScreenUntilFirstFrame"
                 android:value="true" />
@@ -45,18 +36,36 @@
         </activity>
 
         <activity
-            android:name=".AlarmPage"
+            android:name="com.example.alarm_main.AlarmPage"
             android:excludeFromRecents="true"
+            android:turnScreenOn="true"
+            android:showWhenLocked="true"
+            android:resumeWhilePausing="true"
+            android:immersive="true"
+            android:showOnLockScreen="true"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
         <activity
             android:name=".MathsInterface"
+            android:immersive="true"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:showWhenLocked="true"
+            android:resumeWhilePausing="true"
             android:excludeFromRecents="true"
-            android:showForAllUsers="true"
+            android:taskAffinity=""
+            android:launchMode="singleTask"
             android:hardwareAccelerated="true"
-            android:theme="@android:style/Theme.Black.NoTitleBar" />
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
-        <service android:name=".NotificationService" />
+        <service
+            android:name=".NotificationService"
+            android:logo="@mipmap/alarm_img"
+            android:roundIcon="@mipmap/alarm_img"
+            android:stopWithTask="false" />
 
         <service
             android:name=".MusicService"
@@ -67,6 +76,7 @@
 
         <receiver
             android:name="com.example.alarm_main.RestartReceiver"
+            android:directBootAware="true"
             android:enabled="false"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter android:priority="999">

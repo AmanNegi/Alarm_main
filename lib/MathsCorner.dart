@@ -7,41 +7,143 @@ import 'widgets/NumberPad.dart';
 import 'HelperMethods/numberHelper.dart';
 import 'dart:math';
 
-class MathsCorner extends StatelessWidget {
+class MathsCorner extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: MainMath(),
-    );
+  State<StatefulWidget> createState() {
+    return MathsCornerState();
   }
 }
 
-class MainMath extends StatefulWidget {
-  @override
-  _MainMathState createState() => _MainMathState();
-}
-
-class _MainMathState extends State<MainMath> {
-  var color = Colors.purple[600];
-  var rng = new Random();
+class MathsCornerState extends State<MathsCorner> {
   var height;
-  int receivedId;
+  var width;
+  var color = Colors.purple[600];
+  var randomNumber = new Random();
   int correctAnswers = 0;
   int firstNumber;
   int secondNumber;
-  int currentNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    return Scaffold(
+      body: Container(
+        height: height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [color, Colors.black, Colors.black],
+          ),
+        ),
+        child: Column(
+          children: <Widget>[
+            SizedBox(
+              height: (0.3 / 4) * height,
+            ),
+            createTextView(
+                firstNumber.toString() + "  +  " + secondNumber.toString()),
+            SizedBox(
+              height: (0.2 / 4) * height,
+            ),
+            NumberPad(),
+            SizedBox(
+              height: (0.15/4)*height,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+
+                createButton(Icons.backspace, Colors.red[900], Colors.orange,
+                    onPressedClear),
+
+                createButton(Icons.arrow_forward, Colors.green,
+                    Colors.lightGreenAccent, onPressedOk),
+
+                createButton(Icons.refresh, Colors.blue, Colors.lightBlueAccent,
+                    onPressedRefresh),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget createButton(
+      IconData icon, Color mainColor, Color accentColor, Function onPressed) {
+    return Container(
+      decoration: BoxDecoration(
+        color: mainColor,
+        shape: BoxShape.circle,
+      ),
+      width: 75.0,
+      height: 75.0,
+      child: new RawMaterialButton(
+        splashColor: accentColor,
+        shape: new CircleBorder(),
+        elevation: 1.0,
+        child: Icon(
+          icon,
+          color: Colors.white,
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  void onPressedClear() {
+    setState(() {
+      color = Colors.purple[600];
+      NumberHelper.stringNumber = "";
+    });
+  }
+
+  void onPressedOk() {
+    if (NumberHelper.numberSelected() &&
+        getSum() == NumberHelper.getIntNumber()) {
+      print(NumberHelper.getIntNumber().toString());
+      setState(() {
+        correctAnswers++;
+        NumberHelper.stringNumber = "";
+        color = Colors.green;
+      });
+      if (correctAnswers == 3) {
+        PlatformInvoker.invokeCloseWindowMath();
+      } else if (correctAnswers < 3) {
+        changeValues();
+      }
+    } else if (!NumberHelper.numberSelected() ||
+        !(getSum() == NumberHelper.getIntNumber())) {
+      setState(() {
+        color = Colors.red[900];
+        NumberHelper.stringNumber = "";
+      });
+    }
+    print("value of correctAnswers " + correctAnswers.toString());
+  }
+
+  void onPressedRefresh() {
+    setState(() {
+      color = Colors.purple[600];
+      NumberHelper.stringNumber = "";
+      changeValues();
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-   // SystemChrome.setEnabledSystemUIOverlays([]);
+    print(" in MathsCorner.dart ");
+    SystemChrome.setEnabledSystemUIOverlays([]);
     changeValues();
   }
 
   void changeValues() {
     setState(() {
-      firstNumber = rng.nextInt(100);
-      secondNumber = rng.nextInt(100);
+      firstNumber = randomNumber.nextInt(100);
+      secondNumber = randomNumber.nextInt(100);
     });
   }
 
@@ -53,118 +155,6 @@ class _MainMathState extends State<MainMath> {
     return Text(
       text,
       style: TextStyle(fontSize: 60.0),
-    );
-  }
-
-  Widget createNoPad(String text) {
-    return Container(
-      width: 60,
-      height: 60,
-      child: Text(text),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.grey,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    height = MediaQuery.of(context).size.height;
-
-    return Scaffold(
-      body: Container(
-        height: height,
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [color, Colors.black)),
-        child: Column(
-          children: <Widget>[
-            SizedBox(
-              height: 90.0,
-            ),
-            createTextView(
-                firstNumber.toString() + "  +  " + secondNumber.toString()),
-            SizedBox(
-              height: 40,
-            ),
-            NumberPad(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                RaisedButton(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0)),
-                  child: Text("Clear"),
-                  onPressed: () {
-                    print(MediaQuery.of(context).size.height);
-                    setState(() {
-                      height = MediaQuery.of(context).size.height;
-                    });
-                    //  setState(() {
-                    //   color = Colors.purple[600];
-                    //   NumberHelper.stringNumber = "";
-                    // });
-                  },
-                ),
-                RaisedButton(
-                  padding: EdgeInsets.all(20.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  child: Text(
-                    " Check ",
-                    style: TextStyle(fontSize: 20.0),
-                  ),
-                  color: color,
-                  onPressed: () {
-                    if (NumberHelper.numberSelected() &&
-                        getSum() == NumberHelper.getIntNumber()) {
-                      print(NumberHelper.getIntNumber().toString());
-                      setState(() {
-                        correctAnswers++;
-                        NumberHelper.stringNumber = "";
-                        color = Colors.green;
-                      });
-                      if (correctAnswers == 3) {
-                        setState(() {
-                          color = Colors.green;
-                          NumberHelper.stringNumber = "";
-                        });
-                        PlatformInvoker.invokeTheMethod();
-                        // SystemNavigator.pop();
-                      }
-                      changeValues();
-                    } else if (!NumberHelper.numberSelected() ||
-                        !(getSum() == NumberHelper.getIntNumber())) {
-                      setState(() {
-                        color = Colors.red;
-                        NumberHelper.stringNumber = "";
-                      });
-                    }
-
-                    print(
-                        "value of correctAnswers " + correctAnswers.toString());
-                  },
-                ),
-                RaisedButton(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0)),
-                  child: Text("Change"),
-                  onPressed: () {
-                    setState(() {
-                      changeValues();
-                      color = Colors.purple[600];
-                      NumberHelper.stringNumber = "";
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

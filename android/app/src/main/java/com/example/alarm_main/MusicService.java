@@ -4,7 +4,6 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -13,40 +12,46 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class MusicService extends Service {
-    Boolean customPath;
-    String path;
-    MediaPlayer player;
-    Vibrator vibrator;
+    private Boolean customPath;
+    private String path;
+    private static MediaPlayer player;
+    private static Vibrator vibrator;
+    private static AudioClass audioClass = new AudioClass();
+
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    public void checkWriteExternalPermission() {
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mNotificationManager.isNotificationPolicyAccessGranted()) {
-                mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
-
-            }
-        }
-
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        customPath = intent.getBooleanExtra("customPath", false);
+        path = intent.getStringExtra("path");
+        doWork();
+        return START_NOT_STICKY;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            vibrator.cancel();
+            player.stop();
+            player.release();
+            customPath = false;
+            audioClass.setLowVolume();
+        } catch (Exception e) {
+            System.out.println("Some error while closing the musicService");
+        }
+    }
 
-    void doWork() {
+    private void doWork() {
         checkWriteExternalPermission();
-        System.out.println("Started the music Service  customMusic = " + customPath);
-        System.out.println("The values in the MusicService.java " + path + customPath);
 
         if (customPath) {
-            Uri uri;
-            uri = Uri.parse(path);
+            Uri uri = Uri.parse(path);
             player = MediaPlayer.create(this, uri);
             player.setLooping(true);
         } else {
@@ -66,40 +71,20 @@ public class MusicService extends Service {
             pattern[7] = 50;
             vibrator.vibrate(VibrationEffect.createWaveform(pattern, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {
-            //deprecated in API 26
             vibrator.vibrate(10000);
         }
-
-        AudioClass audioClass = new AudioClass();
         audioClass.initiateAudioManager(this);
         audioClass.increaseVolumeWithTime();
         player.start();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        customPath = intent.getBooleanExtra("customPath", false);
-        path = intent.getStringExtra("path");
-        System.out.println(path + "   " + customPath);
 
-        doWork();
-
-        return START_NOT_STICKY;
-    }
-
-    @Override
-    public void onDestroy() {
-        vibrator.cancel();
-        player.stop();
-        player.reset();
-        player.release();
-        customPath = false;
-        super.onDestroy();
-    }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        Intent intent = new Intent(this, wakeFulReceiver.class);
-        sendBroadcast(intent);
+    private void checkWriteExternalPermission() {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (mNotificationManager.isNotificationPolicyAccessGranted()) {
+                mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL);
+            }
+        }
     }
 }

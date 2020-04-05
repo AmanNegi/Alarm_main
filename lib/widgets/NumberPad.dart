@@ -8,26 +8,22 @@ class NumberPad extends StatefulWidget {
 }
 
 class _NumberPadState extends State<NumberPad> {
-  @override
-  initState() {
-    super.initState();
-  }
-
   Widget createTextField() {
     return Container(
-      width: 450,
+      width: ((80 / 100) * MediaQuery.of(context).size.width),
       height: 60.0,
-      margin: EdgeInsets.all(15.0),
-      padding: EdgeInsets.only(left: 10.0, top: 10.0, bottom: 10.0),
+      margin: EdgeInsets.all(10.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.0),
         border: Border.all(
-          color: Colors.grey,
+          color: Colors.grey[200],
         ),
       ),
-      child: Text(
-        NumberHelper.stringNumber,
-        style: TextStyle(fontSize: 30.0, fontFamily: "Raleway-Bold"),
+      child: Center(
+        child: Text(
+          NumberHelper.stringNumber,
+          style: TextStyle(fontSize: 30.0, color: Colors.white),
+        ),
       ),
     );
   }
@@ -42,7 +38,7 @@ class _NumberPadState extends State<NumberPad> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(30.0),
-          splashColor: Colors.black,
+          splashColor: Colors.white,
           onTap: () {
             setState(() {
               if (NumberHelper.stringNumber.length < 5) {
@@ -56,7 +52,7 @@ class _NumberPadState extends State<NumberPad> {
             child: Center(
               child: Text(
                 text.toString(),
-                style: TextStyle(fontSize: 25.0, fontFamily: "Raleway-Bold"),
+                style: TextStyle(fontSize: 25.0),
               ),
             ),
             decoration: BoxDecoration(
@@ -71,14 +67,16 @@ class _NumberPadState extends State<NumberPad> {
 
   @override
   Widget build(BuildContext context) {
+    var height = MediaQuery.of(context).size.height;
     return Container(
+     // height: ((60 / 100) * height),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(
           children: <Widget>[
             createTextField(),
             SizedBox(
-              height: 40.0,
+              height: 30.0,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -89,7 +87,7 @@ class _NumberPadState extends State<NumberPad> {
               ],
             ),
             SizedBox(
-              height: 20.0,
+              height: (0.025)*height,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -100,7 +98,7 @@ class _NumberPadState extends State<NumberPad> {
               ],
             ),
             SizedBox(
-              height: 20.0,
+              height: (0.025)*height,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -111,12 +109,9 @@ class _NumberPadState extends State<NumberPad> {
               ],
             ),
             SizedBox(
-              height: 20.0,
+              height: (0.025)*height,
             ),
             createNoPad(0),
-            SizedBox(
-              height: 20.0,
-            ),
           ],
         ),
       ),

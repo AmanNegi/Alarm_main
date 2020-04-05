@@ -36,7 +36,11 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
           key: new ObjectKey(alarmNew.id),
           direction: DismissDirection.startToEnd,
           background: Container(
-            color: Colors.red[400],
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red[700], Colors.black26],
+              ),
+            ),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Icon(Icons.delete),
@@ -46,7 +50,7 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
             if (direction == DismissDirection.startToEnd) {
               model.deleteProduct(alarmNew.id, index: index);
               Scaffold.of(context).showSnackBar(SnackBar(
-                duration: Duration(seconds: 3),
+                duration: Duration(seconds: 1),
                 elevation: 50.0,
                 backgroundColor: Theme.of(context).primaryColor,
                 action: SnackBarAction(
@@ -69,16 +73,22 @@ class _SimpleListViewClassState extends State<SimpleListViewClass>
             child: Padding(
               padding: EdgeInsets.all(20.0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Icon(Icons.alarm),
+                  Image.asset(
+                    "assets/Images/mainAlarm.png",
+                    height: 40,
+                    width: 40,
+                  ),
                   SizedBox(
                     width: 20,
                   ),
                   Text(
                     alarmNew.timeString,
                     style: TextStyle(
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.w500),
+                        fontSize: 35.0,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white),
                   ),
                 ],
               ),

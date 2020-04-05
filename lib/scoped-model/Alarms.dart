@@ -1,12 +1,12 @@
 import 'package:scoped_model/scoped_model.dart';
 import 'package:flutter/services.dart';
-
 import '../dbHelper.dart';
 import '../Alarm.dart';
 
 class AlarmModel extends Model {
   List<Alarm> _alarms = [];
-  final MethodChannel platform = MethodChannel("aster.flutter.app/alarm/aster");
+   final MethodChannel platform =
+      MethodChannel("aster.flutter.app/alarm/aster");
 
   DbHelper dbHelper = new DbHelper();
 
@@ -16,7 +16,8 @@ class AlarmModel extends Model {
 
   Future<bool> preExists(Alarm alarm) async {
     int count = 0;
-    await dbHelper.initalizeDb();
+
+    await dbHelper.initializeDb();
     List<Map<String, dynamic>> map = await dbHelper.getAlarmMapList();
     map.forEach((Map<String, dynamic> value) {
       int hour = value["hour"];
@@ -33,8 +34,12 @@ class AlarmModel extends Model {
     }
   }
 
+  Future<void> initializeDatabase() async {
+    await dbHelper.initializeDb();
+  }
+
   Future<void> refreshData() async {
-    dbHelper.initalizeDb().then((value) async {
+    dbHelper.initializeDb().then((value) async {
       List<Map<String, dynamic>> map = await dbHelper.getAlarmMapList();
       List<Alarm> alarmList = dbHelper.fromListOfMapToAlarmList(map);
       _alarms = alarmList;
@@ -43,7 +48,7 @@ class AlarmModel extends Model {
   }
 
   Future<void> addAlarm(Alarm alarm) async {
-    dbHelper.initalizeDb().then((value) async {
+    dbHelper.initializeDb().then((value) async {
       int id = await dbHelper.insertAlarm(alarm);
 
       platform.invokeListMethod("setOneShot", {
@@ -60,10 +65,12 @@ class AlarmModel extends Model {
           repeating: alarm.repeating,
           id: id,
           hour: alarm.hour,
+          defaultMethod: alarm.defaultMethod,
           minute: alarm.minute,
           message: alarm.message,
           timeString: alarm.timeString);
       _alarms.add(alarmWithID);
+
       print("length of list " + _alarms.length.toString());
       notifyListeners();
     });
@@ -78,6 +85,7 @@ class AlarmModel extends Model {
       "customPath": alarm.customPath,
       "path": alarm.path,
       'uniqueId': alarm.id,
+      'defaultMethod': alarm.defaultMethod == 1 ? true : false,
       'repeating': alarm.repeating,
       'hour': alarm.hour,
       'timeString': alarm.timeString,
@@ -114,7 +122,7 @@ class AlarmModel extends Model {
       currentIndex = index;
     }
     print("the id created " + currentIndex.toString());
-    dbHelper.initalizeDb().then((value) async {
+    dbHelper.initializeDb().then((value) async {
       int success = await dbHelper.deleteAlarm(id);
       print("success $success delete method");
       platform.invokeMethod("deleteAlarm", {'uniqueId': id});

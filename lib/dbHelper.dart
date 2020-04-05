@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 import 'Alarm.dart';
@@ -8,38 +9,34 @@ import 'package:path_provider/path_provider.dart';
 class DbHelper {
   static Database database;
 
-  String tableName = 'table_name';
-
-  String colId = "id";
-  String colHour = "hour";
-  String colMinute = "minute";
-  String colMessage = "message";
-  String colCustomPath = "customPath";
-  String colPath = "path";
-  String colTimeString = "timeString";
-  String colRepeating = "repeating";
+  static String tableName = 'table_name';
+  static String colId = "id";
+  static String colHour = "hour";
+  static String colMinute = "minute";
+  static String colMessage = "message";
+  static String colCustomPath = "customPath";
+  static String colPath = "path";
+  static String colDefaultMethod ="defaultMethod";
+  static String colTimeString = "timeString";
+  static String colRepeating = "repeating";
 
   Future<Database> get getDatabase async {
-    //check if database is not null
     if (database == null) {
-      await initalizeDb();
+      initializeDb();
     }
     return database;
   }
 
-  Future<void> initalizeDb() async {
-    // * * some official work on here...
+  Future<void> initializeDb() async {
     Directory directory = await getApplicationDocumentsDirectory();
     String path = directory.path + '/alarm.db';
-
-    // ** creating the table n columns for database
     database = await openDatabase(path, version: 1, onCreate: createDb);
   }
 
-  void createDb(Database db, int newVersion) async {
+  static Future<void> createDb(Database db, int newVersion) async {
     print('creating db');
     await db.execute(
-        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colRepeating INTEGER, $colCustomPath INTEGER, $colPath TEXT)');
+        'CREATE TABLE $tableName($colId INTEGER PRIMARY KEY AUTOINCREMENT, $colHour INTEGER, $colMinute INTEGER, $colMessage TEXT NOT NULL, $colTimeString TEXT NOT NULL, $colRepeating INTEGER, $colCustomPath INTEGER, $colPath TEXT, $colDefaultMethod INTEGER)');
   }
 
   // ! adding alarm here...
@@ -67,7 +64,6 @@ class DbHelper {
 
   // ! updating alarm here...
   Future<int> updateAlarm(Alarm alarm) async {
-
     return await database.update(tableName, alarm.toMap(),
         where: '$colId = ?',
         whereArgs: [alarm.id],

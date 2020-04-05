@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:alarm_main/DefaultList.dart';
 import 'package:flutter/material.dart';
 
-import 'package:async/async.dart';
 import 'package:flutter/services.dart';
-import 'HelperMethods/globals.dart' as globals;
 import 'package:alarm_main/AlarmView.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Permit extends StatefulWidget {
   @override
@@ -13,67 +13,20 @@ class Permit extends StatefulWidget {
 }
 
 class _PermitState extends State<Permit> {
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   final MethodChannel platform = MethodChannel("aster.flutter.app/alarm/aster");
-  String buttonText = "Proceed";
-  String instructions = "";
   static const stream =
       const EventChannel('com.aster.eventPermitChannel/stream2');
+
+  String buttonText = "Proceed";
+  String instructions = "";
   StreamSubscription _timerSubscription;
 
-  void initiateStream() {
-    if (_timerSubscription == null) {
-      _timerSubscription =
-          stream.receiveBroadcastStream().listen(receiveFromStream);
-    }
-  }
-
-  void cancelStream() {
-    if (_timerSubscription != null) {
-      _timerSubscription.cancel();
-    }
-  }
-
-  void receiveFromStream(dynamic value) {
-    print(value);
-    Map<String, dynamic> a = value.cast<String, dynamic>();
-    var _list = a.values.toList();
-    var receivedStoragePermit = (_list[0]);
-    var receivedNotificationPermit = (_list[1]);
-
-    setState(() {
-      if (receivedNotificationPermit == true && receivedStoragePermit == true) {
-        setState(() {
-          buttonText = "Proceed";
-          instructions = "";
-        });
-
-        cancelStream();
-        globals.firstTime = false;
-        globals.saveToSharedPrefs(false);
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) {
-          return AlarmView();
-        }));
-      } else if (receivedStoragePermit == true &&
-          receivedNotificationPermit == false) {
-        setState(() {
-          buttonText = "Grant Permission";
-          instructions = "Grant all permissions to continue";
-        });
-      } else if (receivedStoragePermit == false &&
-          receivedNotificationPermit == true) {
-        setState(() {
-          buttonText = "Grant Permission";
-          instructions = "Grant all permissions to continue";
-        });
-      }
-    });
-  }
+  var colorsList = [
+    Colors.black,
+    Colors.black12,
+    Colors.black12,
+    Colors.purple,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -84,12 +37,7 @@ class _PermitState extends State<Permit> {
           gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Colors.black12,
-                Colors.black12,
-                Colors.purple,
-              ]),
+              colors: colorsList),
         ),
         child: Center(
           child: Padding(
@@ -111,7 +59,6 @@ class _PermitState extends State<Permit> {
                   color: Colors.purple[700],
                   onPressed: () {
                     //request all permit
-
                     platform.invokeMethod("requestAllPermit");
                     initiateStream();
                   },
@@ -126,5 +73,52 @@ class _PermitState extends State<Permit> {
         ),
       ),
     );
+  }
+
+  void initiateStream() {
+    if (_timerSubscription == null) {
+      _timerSubscription =
+          stream.receiveBroadcastStream().listen(receiveFromStream);
+    }
+  }
+
+  void cancelStream() {
+    if (_timerSubscription != null) {
+      _timerSubscription.cancel();
+    }
+  }
+
+  void receiveFromStream(dynamic value) async {
+    print(value);
+    Map<String, dynamic> a = value.cast<String, dynamic>();
+    var _list = a.values.toList();
+    var receivedStoragePermit = (_list[0]);
+    var receivedNotificationPermit = (_list[1]);
+
+    if (receivedNotificationPermit == true && receivedStoragePermit == true) {
+      setState(() {
+        buttonText = "Proceed";
+        instructions = "";
+      });
+      cancelStream();
+
+      var sharedPrefs = await SharedPreferences.getInstance();
+      sharedPrefs.setBool("isFirstTime", false);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return DefaultList();
+          },
+        ),
+      );
+    } else if (receivedStoragePermit == false ||
+        receivedNotificationPermit == false) {
+      setState(() {
+        buttonText = "Grant Permission";
+        instructions = "Grant all permissions to continue";
+      });
+    }
   }
 }

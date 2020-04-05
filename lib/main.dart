@@ -1,19 +1,16 @@
-import 'package:alarm_main/permit.dart';
+import 'package:alarm_main/AlarmView.dart';
+import 'package:alarm_main/Permit.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
-import 'package:dynamic_theme/dynamic_theme.dart';
+
 import 'package:scoped_model/scoped_model.dart';
 import 'package:alarm_main/scoped-model/Alarms.dart';
 
-import 'HelperMethods/globals.dart' as globals;
-import 'permit.dart';
-import 'AlarmView.dart';
+import 'Permit.dart';
 import 'MathsCorner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
-
-void startMathsCorner() => runApp(MathsCorner());
 
 class MyApp extends StatefulWidget {
   @override
@@ -21,41 +18,41 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  SystemUiOverlayStyle mySystemTheme = SystemUiOverlayStyle.dark.copyWith(
-    systemNavigationBarColor: Colors.black,
+  ThemeData themeData =
+      ThemeData(brightness: Brightness.dark, fontFamily: "Raleway");
 
+  Widget mainWidget = Scaffold(
+    body: Container(
+      color: Colors.grey[900],
+    ),
   );
 
   @override
   void initState() {
     super.initState();
+    sharedPrefsSetup();
   }
 
   @override
   Widget build(BuildContext context) {
-    globals.getValuesFromSharedPrefs();
-    SystemChrome.setSystemUIOverlayStyle(mySystemTheme);
     return ScopedModel<AlarmModel>(
       model: AlarmModel(),
-      child: DynamicTheme(
-        defaultBrightness: Brightness.dark,
-        data: (brightness) {
-          return ThemeData(
-            fontFamily: "Raleway",
-            primarySwatch: Colors.indigo,
-            snackBarTheme: SnackBarThemeData(),
-            brightness: brightness,
-          );
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(brightness: Brightness.dark, fontFamily: "Raleway"),
+        routes: {
+          "/startMathsCorner": (context) => MathsCorner(),
         },
-        themedWidgetBuilder: (context, theme) {
-          print(globals.firstTime);
-          return MaterialApp(
-            title: 'Flutter Demo',
-            theme: theme,
-            home: globals.firstTime ? Permit() : AlarmView(),
-          );
-        },
+        home: mainWidget,
       ),
     );
+  }
+
+  void sharedPrefsSetup() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    bool isFirstTime = !sharedPreferences.containsKey("isFirstTime");
+    setState(() {
+      mainWidget = isFirstTime ? Permit() : AlarmView();
+    });
   }
 }
